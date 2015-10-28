@@ -44,7 +44,7 @@ sculptureSize :: GLfloat
 sculptureSize = 0.5
 
 sculptureHeight :: GLfloat
-sculptureHeight = 2
+sculptureHeight = 1.5
 
 paintingHeight :: GLfloat
 paintingHeight = 2
@@ -245,7 +245,7 @@ main = do
   pedestalShape  <- makeShape pedestalGeo pedestalProg
 
   sculptureGeo   <- cubeGeometry ((V3 sculptureSize sculptureSize sculptureSize)) (V3 1 1 1)
-  paintingGeo       <- planeGeometry (V2 (1.618 * paintingSize) paintingSize ) (V3 0 0 (-1)) (V3 0 1 0) (V2 1 1)
+  paintingGeo    <- planeGeometry (V2 (1.618 * paintingSize) paintingSize ) (V3 0 0 (-1)) (V3 0 1 0) (V2 1 1)
 
   --pedestalShape  <- makeShape pedestalGeo pedestalProg--markerGeo markerProg
 
@@ -261,8 +261,8 @@ main = do
   let shapes = Shapes{ _shpRoom        = roomShape
                      , _shpFrame       = frameShape
                      , _shpPedestal    = pedestalShape
-                     , _shpSculptures  = [s1 , s2 , s3]
-                     , _shpPaintings   = [p1 , p2 , p3]
+                     , _shpSculptures  = [s1 , s2 , s3 , s1 , s2 , s3, s3, s3]
+                     , _shpPaintings   = [p1 , p2 , p3 , p1 , p2 , p3]
                      }
 
 
@@ -295,12 +295,12 @@ main = do
 
 
   let world = World 
-        { _wldPaintings = Map.fromList $ flip map [0..1] $ 
+        { _wldPaintings = Map.fromList $ flip map [0..5] $ 
                           \i -> let something = Painting
                                       { _pntPose  = getPaintingPose i
                                       }
                                 in (i, something)
-        , _wldSculptures = Map.fromList $ flip map [0..1] $ 
+        , _wldSculptures = Map.fromList $ flip map [0..7] $ 
                           \i -> let something = Sculpture
                                       { _scpPose  = getSculpturePose i 
                                       }
@@ -524,19 +524,24 @@ drawShape model projection view shape = do
 --getPaintingPose :: Int -> Pose
 getPaintingPose i = pose
 
-  where angle = 0.5 * 3.14159
-        fI = fromIntegral i 
-        pose = Pose{ _posPosition    = V3 (fI * 2) 0 0
-                   , _posOrientation = Quaternion 0 (V3 0 1 0)
+  where fI = fromIntegral i 
+
+        id = mod' (fromIntegral i) 3
+        side = ((fromIntegral i ) - id ) / 3 
+        angle = ((-0.25) + (0.5 * side)) * 3.14159 * 2
+
+        pose = Pose{ _posPosition    = V3 ((side - 0.5) * 3.9) 0 ((id-1) * 2)
+                   , _posOrientation = axisAngle (V3 0 1 0) angle
                    }
 --getSculpturePose :: Int -> Pose
 getSculpturePose i = pose
 
   where fI = fromIntegral i 
 
-        x = mod' (( (fromIntegral i) * 2 ) - (roomWidth / 2 )) roomWidth
-        pose = Pose{ _posPosition    = V3 x 0 0
-                   , _posOrientation = Quaternion 0 (V3 0 1 0)
+        z = mod' (fromIntegral i) 4  
+        x = (fromIntegral i ) - z 
+        pose = Pose{ _posPosition    = V3 (((x / 4) - 0.5 ) * 1.2) 0 ((z -1.5) * 1.2)
+                   , _posOrientation = axisAngle (V3 0 1 0) 0
                    }
 
 
