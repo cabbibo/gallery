@@ -132,9 +132,6 @@ void main(){
   }
 
 
-  if( abs(vUV.x - .5) > .49 ||  abs(vUV.y - .5) > .49 ){
-    col = vec3(1.);
-  }
 
 
   color = vec4( col , 1. );
