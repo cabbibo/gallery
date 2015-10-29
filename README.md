@@ -17,3 +17,11 @@ Engine things to get done?
 Bugs
 Normal Matrix calculation wrong
 Planes possibly facing wrong way?
+
+
+Mechanics?
+
+  - procedurally nested rooms. go into each by sticking your head in, the variations that happen to that box, are applied to each box within them. extra variations happen to each one of those boxes.
+  - Constantly save the room you are in, so if another person visits that room you will see them. Maybe even record movements? would feel more magical mroe more people you met the further down you went!
+
+  - Branches woudl have to cross, so you could get super lost but somehow make your way back to the original world? maybe only 36 worlds?

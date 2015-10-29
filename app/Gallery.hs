@@ -263,15 +263,19 @@ main = do
   tFogProg       <- createShaderProgram vs "app/shaders/template/fogStep.frag"
 
 
-  pSphereField  <- createShaderProgram vs "app/shaders/paintings/sphereField.frag"
-  pRedRing      <- createShaderProgram vs "app/shaders/paintings/redRing.frag"
+  pSphereField      <- createShaderProgram vs "app/shaders/paintings/sphereField.frag"
+  pRedRing          <- createShaderProgram vs "app/shaders/paintings/redRing.frag"
+  pTree             <- createShaderProgram vs "app/shaders/paintings/tree.frag"
+  pTunnel1          <- createShaderProgram vs "app/shaders/paintings/tunnel1.frag"
+  pTunnel2          <- createShaderProgram vs "app/shaders/paintings/tunnel2.frag"
+  pCubeAndSpheres   <- createShaderProgram vs "app/shaders/paintings/cubeAndSpheres.frag"
 
-  sWeirdHoles1  <- createShaderProgram vs "app/shaders/sculptures/weirdHoles1.frag"
-  sFieldSub     <- createShaderProgram vs "app/shaders/sculptures/fieldSub.frag"
-  sBubbles      <- createShaderProgram vs "app/shaders/sculptures/bubbles.frag"
-  sCubeSubField <- createShaderProgram vs "app/shaders/sculptures/cubeSubField.frag"
-  sTessel       <- createShaderProgram vs "app/shaders/sculptures/tessel.frag"
-  sTesselSphere <- createShaderProgram vs "app/shaders/sculptures/tesselSphere.frag"
+  sWeirdHoles1      <- createShaderProgram vs "app/shaders/sculptures/weirdHoles1.frag"
+  sFieldSub         <- createShaderProgram vs "app/shaders/sculptures/fieldSub.frag"
+  sBubbles          <- createShaderProgram vs "app/shaders/sculptures/bubbles.frag"
+  sCubeSubField     <- createShaderProgram vs "app/shaders/sculptures/cubeSubField.frag"
+  sTessel           <- createShaderProgram vs "app/shaders/sculptures/tessel.frag"
+  sTesselSphere     <- createShaderProgram vs "app/shaders/sculptures/tesselSphere.frag"
 
 
   s1  <- makeShape sculptureGeo tRaytraceProg
@@ -286,7 +290,10 @@ main = do
 
   p1  <- makeShape paintingGeo pSphereField
   p2  <- makeShape paintingGeo pRedRing
-  p3  <- makeShape paintingGeo pSphereField
+  p3  <- makeShape paintingGeo pTree
+  p4  <- makeShape paintingGeo pTunnel1
+  p5  <- makeShape paintingGeo pTunnel2
+  p6  <- makeShape paintingGeo pCubeAndSpheres
 
 
   let shapes = Shapes{ _shpRoom        = roomShape
@@ -294,7 +301,7 @@ main = do
                      , _shpLight       = lightShape
                      , _shpPedestal    = pedestalShape
                      , _shpSculptures  = [s1 , s2 , s3 , s4 , s5 , s6, s7, s8]
-                     , _shpPaintings   = [p1 , p2 , p3 , p1 , p2 , p3]
+                     , _shpPaintings   = [p1 , p2 , p4 , p3 , p6 , p5]
                      }
 
 
