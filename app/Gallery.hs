@@ -32,7 +32,7 @@ TODO: Move to Types
 
 -}
 roomHeight :: GLfloat
-roomHeight = 7
+roomHeight = 4
 
 roomWidth :: GLfloat
 roomWidth = 4
@@ -68,7 +68,7 @@ frameOffset = V3 0 paintingHeight (0.03)
 
 -- Offset of pedestal beneath sculpture
 pedestalOffset :: V3 GLfloat
-pedestalOffset = V3 0 (pedestalHeight/2) 0
+pedestalOffset = V3 0 ((pedestalHeight/2) - 0.001) 0
 
 -- Position of sculpture ( relative )
 sculptureOffset :: V3 GLfloat
@@ -101,6 +101,7 @@ data Shapes u = Shapes
   { _shpPedestal        :: Shape u
   , _shpFrame           :: Shape u
   , _shpRoom            :: Shape u
+  , _shpLight           :: Shape u
   , _shpSculptures      :: [Shape u]
   , _shpPaintings       :: [Shape u]
   }
@@ -177,6 +178,7 @@ data World = World
   , _wldPlayer        :: !(Pose GLfloat)
   , _wldRoom          :: !Room
   , _wldTime          :: !Float
+  , _wldLight         :: !(Pose GLfloat)
   }
 makeLenses ''World
 
@@ -197,9 +199,10 @@ data Uniforms = Uniforms
   , uNormalMatrix        :: UniformLocation (M44 GLfloat)
   , uInverseModel        :: UniformLocation (M44 GLfloat)
   , uModel               :: UniformLocation (M44 GLfloat)
-  , uCamera              :: UniformLocation (V3  GLfloat)
+  , uEye                 :: UniformLocation (V3  GLfloat)
   , uHand1               :: UniformLocation (V3  GLfloat)
   , uHand2               :: UniformLocation (V3  GLfloat)
+  , uLight               :: UniformLocation (V3  GLfloat)
   , uTime                :: UniformLocation GLfloat
   } deriving (Data)
 
@@ -233,7 +236,7 @@ main = do
 
   -}
   roomProg       <- createShaderProgram "app/shaders/world/room.vert" "app/shaders/world/room.frag"
-  roomGeo        <- cubeGeometry (V3 roomWidth roomHeight roomDepth) (V3 1 1 1)
+  roomGeo        <- cubeGeometry (V3 roomWidth roomHeight roomDepth) (V3 30 30 30)
   roomShape      <- makeShape roomGeo roomProg
 
   frameProg      <- createShaderProgram "app/shaders/world/frame.vert" "app/shaders/world/frame.frag"
@@ -241,27 +244,56 @@ main = do
   frameShape     <- makeShape frameGeo frameProg
 
   pedestalProg   <- createShaderProgram "app/shaders/world/pedestal.vert" "app/shaders/world/pedestal.frag"
-  pedestalGeo    <- cubeGeometry ((V3 sculptureSize pedestalHeight sculptureSize)) (V3 1 1 1)
+  pedestalGeo    <- cubeGeometry ((V3 sculptureSize pedestalHeight sculptureSize)) (V3 20 30 20)
   pedestalShape  <- makeShape pedestalGeo pedestalProg
+
+
+  lightProg   <- createShaderProgram "app/shaders/world/light.vert" "app/shaders/world/light.frag"
+  lightGeo    <- icosahedronGeometry 0.6 4
+  lightShape  <- makeShape lightGeo lightProg
 
   sculptureGeo   <- cubeGeometry ((V3 sculptureSize sculptureSize sculptureSize)) (V3 1 1 1)
   paintingGeo    <- planeGeometry (V2 (1.618 * paintingSize) paintingSize ) (V3 0 0 (-1)) (V3 0 1 0) (V2 1 1)
 
   --pedestalShape  <- makeShape pedestalGeo pedestalProg--markerGeo markerProg
 
-  s1  <- makeShape sculptureGeo pedestalProg
-  s2  <- makeShape sculptureGeo frameProg
-  s3  <- makeShape sculptureGeo roomProg
 
-  p1  <- makeShape paintingGeo pedestalProg
-  p2  <- makeShape paintingGeo frameProg
-  p3  <- makeShape paintingGeo roomProg
+  let vs = "app/shaders/template/raytrace.vert"
+  tRaytraceProg  <- createShaderProgram vs "app/shaders/template/raytrace.frag"
+  tFogProg       <- createShaderProgram vs "app/shaders/template/fogStep.frag"
+
+
+  pSphereField  <- createShaderProgram vs "app/shaders/paintings/sphereField.frag"
+  pRedRing      <- createShaderProgram vs "app/shaders/paintings/redRing.frag"
+
+  sWeirdHoles1  <- createShaderProgram vs "app/shaders/sculptures/weirdHoles1.frag"
+  sFieldSub     <- createShaderProgram vs "app/shaders/sculptures/fieldSub.frag"
+  sBubbles      <- createShaderProgram vs "app/shaders/sculptures/bubbles.frag"
+  sCubeSubField <- createShaderProgram vs "app/shaders/sculptures/cubeSubField.frag"
+  sTessel       <- createShaderProgram vs "app/shaders/sculptures/tessel.frag"
+  sTesselSphere <- createShaderProgram vs "app/shaders/sculptures/tesselSphere.frag"
+
+
+  s1  <- makeShape sculptureGeo tRaytraceProg
+  s2  <- makeShape sculptureGeo tFogProg
+  s3  <- makeShape sculptureGeo sFieldSub
+  s4  <- makeShape sculptureGeo sWeirdHoles1
+  s5  <- makeShape sculptureGeo sBubbles
+  s6  <- makeShape sculptureGeo sCubeSubField
+  s7  <- makeShape sculptureGeo sTessel
+  s8  <- makeShape sculptureGeo sTesselSphere
+
+
+  p1  <- makeShape paintingGeo pSphereField
+  p2  <- makeShape paintingGeo pRedRing
+  p3  <- makeShape paintingGeo pSphereField
 
 
   let shapes = Shapes{ _shpRoom        = roomShape
                      , _shpFrame       = frameShape
+                     , _shpLight       = lightShape
                      , _shpPedestal    = pedestalShape
-                     , _shpSculptures  = [s1 , s2 , s3 , s1 , s2 , s3, s3, s3]
+                     , _shpSculptures  = [s1 , s2 , s3 , s4 , s5 , s6, s7, s8]
                      , _shpPaintings   = [p1 , p2 , p3 , p1 , p2 , p3]
                      }
 
@@ -308,6 +340,7 @@ main = do
         , _wldPlayer  = newPose {_posPosition = V3 0 startHeight 2}
         , _wldRoom    = Room { _romPose = newPose {_posPosition = V3 0 0 0} }
         , _wldTime    = 0
+        , _wldLight   = newPose {_posPosition = V3 0 (roomHeight) 0}
         }
 
 
@@ -384,11 +417,11 @@ render shapes projection viewMat = do
   let roomShape     = shapes ^. shpRoom
   let pedestalShape = shapes ^. shpPedestal
   let frameShape    = shapes ^. shpFrame
+  let lightShape    = shapes ^. shpLight
 
 
   let sculptureShapes    = shapes ^. shpSculptures
   let paintingShapes     = shapes ^. shpPaintings
-
 
 
   {-
@@ -397,7 +430,7 @@ render shapes projection viewMat = do
 
   -}
 
-
+  glEnable GL_CULL_FACE
   glCullFace GL_FRONT
 
   room <- use wldRoom
@@ -406,9 +439,28 @@ render shapes projection viewMat = do
 
   withVAO (sVAO roomShape) $ do
 
+
     let model = transformationFromPose $ shiftBy roomOffset (room ^. romPose)  
     drawShape model projection viewMat roomShape
 
+
+  {-
+
+    Render the Light
+
+  -}
+
+  glCullFace GL_BACK
+
+  light <- use wldLight
+
+  useProgram (sProgram lightShape)
+
+  withVAO (sVAO lightShape) $ do
+
+
+    let model = transformationFromPose light 
+    drawShape model projection viewMat lightShape
 
 
 
@@ -420,7 +472,8 @@ render shapes projection viewMat = do
 
   -}
 
-  glCullFace GL_BACK
+  
+  --glCullFace GL_BACK
 
   paintings <- use wldPaintings
 
@@ -429,6 +482,7 @@ render shapes projection viewMat = do
   withVAO (sVAO frameShape) $ do
 
     forM_ ( zip [0..] ( Map.toList paintings ) ) $ \( i , (objID, obj) ) -> do
+
 
       let model = transformationFromPose $ shiftBy frameOffset (obj ^. pntPose)  
       drawShape model projection viewMat frameShape
@@ -447,27 +501,11 @@ render shapes projection viewMat = do
 
     forM_ ( zip [0..] ( Map.toList sculptures ) ) $ \( i , (objID, obj) ) -> do
 
-      let model = transformationFromPose $ shiftBy pedestalOffset (obj ^. scpPose)  
+      let model = transformationFromPose $ shiftBy pedestalOffset  (obj ^. scpPose)  
       drawShape model projection viewMat pedestalShape
 
 
 
-  {-
-
-    Render the Sculptures
-
-  -}
-  sculptures <- use wldSculptures
-
-  forM_ ( zip [0..] ( Map.toList sculptures ) ) $ \( i , (objID, obj) ) -> do
-
-    let shape = (sculptureShapes !! i)
-    useProgram (sProgram shape)
-
-    withVAO (sVAO shape) $ do
-
-      let model = transformationFromPose $ shiftBy sculptureOffset (obj ^. scpPose)  
-      drawShape model projection viewMat shape
 
 
 
@@ -494,6 +532,29 @@ render shapes projection viewMat = do
 
 
 
+  {-
+
+    Render the Sculptures
+
+    Draw them last because they are going to have their backsides shown
+
+  -}
+
+  glDisable GL_CULL_FACE
+  
+  sculptures <- use wldSculptures
+
+  forM_ ( zip [0..] ( Map.toList sculptures ) ) $ \( i , (objID, obj) ) -> do
+
+    let shape = (sculptureShapes !! i)
+    useProgram (sProgram shape)
+
+    withVAO (sVAO shape) $ do
+
+      let model = transformationFromPose $ shiftBy sculptureOffset (obj ^. scpPose)  
+      drawShape model projection viewMat shape
+
+
 
 
 
@@ -504,10 +565,19 @@ render shapes projection viewMat = do
 
 -}
 
-drawShape :: MonadIO m  => M44 GLfloat -> M44 GLfloat -> M44 GLfloat ->  Shape Uniforms -> m ()
+drawShape ::(MonadIO m, MonadState World m) => M44 GLfloat -> M44 GLfloat -> M44 GLfloat ->  Shape Uniforms -> m ()
 drawShape model projection view shape = do 
 
   let Uniforms{..} = sUniforms shape
+
+  light <- use wldLight
+  time  <- use wldTime
+
+
+  -- Recalculating for each object. doesn't make sense!
+  uniformV3 uEye (fromMaybe view (inv44 view) ^. translation)
+  uniformV3 uLight ((light ^. posPosition)- (V3 0 0.3 0))
+  uniformF  uTime time
 
   uniformM44 uViewProjection      (projection !*! view)
   uniformM44 uModelViewProjection (projection !*! view !*! model)
