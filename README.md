@@ -11,6 +11,13 @@ Aesthetic questions
 Engine things to get done?
   - text
   - pragmas in shader
+  - Begin thinking about good venacular for baking. 
+  	if we really want this to be used / be efficient
+  	it should contain code that can do things like
+  	compute random textures, and save that out, as 
+  	well as baking everything else. Lets say you want to do 
+  	some global illumination. There should be an easy way to do that
+  	with not much extra effort, but can do as much precalculation as possible!
 
 
 

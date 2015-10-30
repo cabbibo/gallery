@@ -35,25 +35,25 @@ roomHeight :: GLfloat
 roomHeight = 4
 
 roomWidth :: GLfloat
-roomWidth = 4
+roomWidth = 5
 
 roomDepth :: GLfloat
-roomDepth = 6
+roomDepth = 3
 
 sculptureSize :: GLfloat
-sculptureSize = 0.5
+sculptureSize = 0.3
 
 sculptureHeight :: GLfloat
-sculptureHeight = 1.5
+sculptureHeight = 1.4
 
 paintingHeight :: GLfloat
-paintingHeight = 2
+paintingHeight = 1.5
 
 paintingSize :: GLfloat
-paintingSize = 1
+paintingSize = 0.8
 
 frameExtra :: GLfloat
-frameExtra = 0.1
+frameExtra = 0.05
 
 
 pedestalHeight :: GLfloat
@@ -220,7 +220,7 @@ data Uniforms = Uniforms
 -}
 
 enableDevices :: [GamePalDevices]
--- enableDevices = [UseOpenVR]
+--enableDevices = [UseOpenVR]
 -- enableDevices = [UseOpenVR, UseHydra]
 enableDevices = []
 
@@ -605,9 +605,9 @@ getPaintingPose i = pose
 
         id = mod' (fromIntegral i) 3
         side = ((fromIntegral i ) - id ) / 3 
-        angle = ((-0.25) + (0.5 * side)) * 3.14159 * 2
+        angle = (-0.5 + (0.5 * side)) * 3.14159 * 2
 
-        pose = Pose{ _posPosition    = V3 ((side - 0.5) * 3.9) 0 ((id-1) * 2)
+        pose = Pose{ _posPosition    = V3 ((id-1) * 2 * paintingSize) 0 ((side - 0.5) * roomDepth)
                    , _posOrientation = axisAngle (V3 0 1 0) angle
                    }
 --getSculpturePose :: Int -> Pose
@@ -615,9 +615,9 @@ getSculpturePose i = pose
 
   where fI = fromIntegral i 
 
-        z = mod' (fromIntegral i) 4  
-        x = (fromIntegral i ) - z 
-        pose = Pose{ _posPosition    = V3 (((x / 4) - 0.5 ) * 1.2) 0 ((z -1.5) * 1.2)
+        x = mod' (fromIntegral i) 4  
+        z = (fromIntegral i ) - x 
+        pose = Pose{ _posPosition    = V3 (((x / 4) - 1.5/4 ) * roomWidth * 0.8) 0 ((( z/4) - 1.5/4 ) * roomDepth * 0.4)
                    , _posOrientation = axisAngle (V3 0 1 0) 0
                    }
 
