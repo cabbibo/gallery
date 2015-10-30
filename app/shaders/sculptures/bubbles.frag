@@ -7,6 +7,7 @@ const int NUM_OF_TRACE_STEPS = 20;
 const float PI  = 3.14159;
 
 uniform float uTime;
+uniform vec3 uDimensions;
 
 in vec3 vPos;
 in vec3 vEye;
@@ -61,25 +62,25 @@ float opS( float d1, float d2 )
 vec2 map( vec3 pos ){
 
 
-  vec2 res = vec2( sdBox( pos  , vec3( .4 ) ) , 1. );
-  res.x = opS( sdBox( pos  , vec3( .26 ) ) , res.x );
+  vec2 res = vec2( sdBox( pos  , uDimensions * 2. ) , 1. );
+  res.x = opS( sdBox( pos  , ( uDimensions / 2. ) + vec3( INTERSECTION_PRECISION * 1.1)) , res.x );
 
 
   float s;
 
   //for( int i = 0; i < 6; i++){
-  s = sdSphere( pos - sPos[0], .03);
-  res = smoothU( res , vec2( s , 2.) , .1);
-  s = sdSphere( pos - sPos[1], .03);
-  res = smoothU( res , vec2( s , 2.) , .1);
-  s = sdSphere( pos - sPos[2], .03);
-  res = smoothU( res , vec2( s , 2.) , .1);
-  s = sdSphere( pos - sPos[3], .03);
-  res = smoothU( res , vec2( s , 2.) , .1);
-  s = sdSphere( pos - sPos[4], .03);
-  res = smoothU( res , vec2( s , 2.) , .1);
-  s = sdSphere( pos - sPos[5], .03);
-  res = smoothU( res , vec2( s , 2.) , .1);
+  s = sdSphere( pos - sPos[0], .03 * uDimensions.x * 2. );
+  res = smoothU( res , vec2( s , 2.) , .1* uDimensions.x * 2.);
+  s = sdSphere( pos - sPos[1], .03 * uDimensions.x * 2. );
+  res = smoothU( res , vec2( s , 2.) , .1* uDimensions.x * 2.);
+  s = sdSphere( pos - sPos[2], .03 * uDimensions.x * 2. );
+  res = smoothU( res , vec2( s , 2.) , .1* uDimensions.x * 2.);
+  s = sdSphere( pos - sPos[3], .03 * uDimensions.x * 2. );
+  res = smoothU( res , vec2( s , 2.) , .1* uDimensions.x * 2.);
+  s = sdSphere( pos - sPos[4], .03 * uDimensions.x * 2. );
+  res = smoothU( res , vec2( s , 2.) , .1* uDimensions.x * 2.);
+  s = sdSphere( pos - sPos[5], .03 * uDimensions.x * 2. );
+  res = smoothU( res , vec2( s , 2.) , .1 * uDimensions.x * 2.);
   //}
 
   //vec2 res = vec2( sdBox( pos + vec3( 0., .5, 0.) , vec3( 2. , .1 , 2. ) ) , 1. );
@@ -131,12 +132,12 @@ vec3 calcNormal( in vec3 pos ){
 
 void main(){
 
-  sPos[0] = vec3( sin( uTime * .14 ) * .1 , sin( uTime  * .25 ) * .2 -.1,  sin( uTime  * .25 ) * .1);
-  sPos[1] = vec3( sin( uTime * .34 ) * .1 , sin( uTime  * .825 ) * .2 -.1,  sin( uTime  * .25 ) * .1);
-  sPos[2] = vec3( sin( uTime * .24 ) * .1 , sin( uTime  * .4125 ) * .2 -.1,  sin( uTime  * .25 ) * .1);
-  sPos[3] = vec3( sin( uTime * .19 + 1. ) * .1 , sin( uTime  * .9625 ) * .2 -.1,  sin( uTime  * .25 ) * .1);
-  sPos[4] = vec3( sin( uTime * .54 + 2. ) * .1 , sin( uTime  * .31225 ) * .2 -.1,  sin( uTime  * .25 ) * .1);
-  sPos[5] = vec3( sin( uTime * .4 + .3 ) * .1 , sin( uTime  * .625 ) * .2 -.1,  sin( uTime  * .25 ) * .1);
+  sPos[0] = vec3( sin( uTime * .14 ) * .1 , sin( uTime  * .25 ) * .2 -.1,  sin( uTime  * .25 ) * .1) * uDimensions.x * 2.;
+  sPos[1] = vec3( sin( uTime * .34 ) * .1 , sin( uTime  * .825 ) * .2 -.1,  sin( uTime  * .25 ) * .1)* uDimensions.x * 2.;
+  sPos[2] = vec3( sin( uTime * .24 ) * .1 , sin( uTime  * .4125 ) * .2 -.1,  sin( uTime  * .25 ) * .1)* uDimensions.x * 2.;
+  sPos[3] = vec3( sin( uTime * .19 + 1. ) * .1 , sin( uTime  * .9625 ) * .2 -.1,  sin( uTime  * .25 ) * .1)* uDimensions.x * 2.;
+  sPos[4] = vec3( sin( uTime * .54 + 2. ) * .1 , sin( uTime  * .31225 ) * .2 -.1,  sin( uTime  * .25 ) * .1)* uDimensions.x * 2.;
+  sPos[5] = vec3( sin( uTime * .4 + .3 ) * .1 , sin( uTime  * .625 ) * .2 -.1,  sin( uTime  * .25 ) * .1)* uDimensions.x * 2.;
 
   vec3 ro = vPos;
   vec3 rd = normalize( vPos - vEye );

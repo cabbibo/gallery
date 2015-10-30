@@ -204,6 +204,7 @@ data Uniforms = Uniforms
   , uHand2               :: UniformLocation (V3  GLfloat)
   , uLight               :: UniformLocation (V3  GLfloat)
   , uTime                :: UniformLocation GLfloat
+  , uDimensions          :: UniformLocation (V3  GLfloat)
   } deriving (Data)
 
 
@@ -220,9 +221,9 @@ data Uniforms = Uniforms
 -}
 
 enableDevices :: [GamePalDevices]
---enableDevices = [UseOpenVR]
+enableDevices = [UseOpenVR]
 -- enableDevices = [UseOpenVR, UseHydra]
-enableDevices = []
+--enableDevices = []
 
 main :: IO ()
 main = do
@@ -370,7 +371,7 @@ main = do
     time <- use wldTime
 
 
-    applyMouseLook gpWindow wldPlayer
+    --applyMouseLook gpWindow wldPlayer
     applyWASD gpWindow wldPlayer
     processEvents gpEvents $ \e -> do
       closeOnEscape gpWindow e
@@ -505,6 +506,8 @@ render shapes projection viewMat = do
   useProgram (sProgram pedestalShape)
 
   withVAO (sVAO pedestalShape) $ do
+ 
+
 
     forM_ ( zip [0..] ( Map.toList sculptures ) ) $ \( i , (objID, obj) ) -> do
 
@@ -528,6 +531,10 @@ render shapes projection viewMat = do
 
     let shape = (paintingShapes !! i)
     useProgram (sProgram shape)
+
+    let Uniforms{..} = sUniforms shape
+
+    uniformV3 uDimensions (V3 (paintingSize * 1.618) paintingSize 0)
 
     withVAO (sVAO shape) $ do
 
@@ -555,6 +562,10 @@ render shapes projection viewMat = do
 
     let shape = (sculptureShapes !! i)
     useProgram (sProgram shape)
+
+    let Uniforms{..} = sUniforms shape
+
+    uniformV3 uDimensions (V3 (sculptureSize) (sculptureSize) (sculptureSize))
 
     withVAO (sVAO shape) $ do
 

@@ -1,5 +1,6 @@
 #version 330 core
 
+uniform vec3 uDimensions;
 
 const float MAX_TRACE_DISTANCE = 2.;           // max trace distance
 const float INTERSECTION_PRECISION = 0.001;        // precision of the intersection
@@ -26,7 +27,7 @@ float opRepSphere( vec3 p, vec3 c , float r)
 {
     vec3 q = mod(p,c)-0.5*c;
     vec3 re = (q-p)/c;
-    return sdSphere( q  , r * 3. - .02 * length(re) );
+    return sdSphere( q  , r * 1.9- .01 * length(re) );
 }
 
 
@@ -54,9 +55,9 @@ float sdBox( vec3 p, vec3 b )
 vec2 map( vec3 pos ){
 
 
-  vec2 res = vec2( opRepSphere( pos , vec3( .05 )  , .025 ) , 1. );
+  vec2 res = vec2( opRepSphere( pos , vec3( .05 * uDimensions.x * 2. )  , .025 * uDimensions.x * 2.8) , 1. );
 
-  res.x = opS(  res.x , sdBox( pos , vec3( .125 )) ) ;
+  res.x = opS(  res.x , sdBox( pos , vec3( .125 * uDimensions.x * 2. )) ) ;
 
   return res;
 
