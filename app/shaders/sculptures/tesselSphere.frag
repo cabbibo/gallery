@@ -3,8 +3,8 @@
 
 
 const float MAX_TRACE_DISTANCE = 2.;           // max trace distance
-const float INTERSECTION_PRECISION = 0.009;        // precision of the intersection
-const int NUM_OF_TRACE_STEPS = 30;
+const float INTERSECTION_PRECISION = 0.001;        // precision of the intersection
+const int NUM_OF_TRACE_STEPS = 50;
 const float PI  = 3.14159;
 
 uniform float uTime;
@@ -15,12 +15,15 @@ in vec3 vNorm;
 
 in vec3 vHand1;
 in vec3 vHand2;
+in vec3 vLight;
 
 in vec2 vUV;
 
 out vec4 color;
 
-vec3 sPos[10];
+
+
+uniform vec3 uDimensions;
 
 /*
 
@@ -88,16 +91,93 @@ vec2 smoothU( vec2 d1, vec2 d2, float k)
     return vec2( mix(b, a, h) - k*h*(1.0-h), mix(d2.y, d1.y, pow(h, 2.0)));
 }
 
+float smax(float a, float b, float k)
+{
+    return log(exp(k*a)+exp(k*b))/k;
+}
+
+float smoothSub( float d1, float d2, float k)
+{
+    //float a = d1.x;
+    //float b = d2.x;
+    return smax( -d1 , d2 , k );
+}
+
+float sdSphere( vec3 p, float s )
+{
+  return length(p)-s;
+}
+
+
+float hash( float n ) { return fract(sin(n)*753.5453123); }
+float noise( in vec3 x )
+{
+    vec3 p = floor(x);
+    vec3 f = fract(x);
+    f = f*f*(3.0-2.0*f);
+  
+    float n = p.x + p.y*157.0 + 113.0*p.z;
+    return mix(mix(mix( hash(n+  0.0), hash(n+  1.0),f.x),
+                   mix( hash(n+157.0), hash(n+158.0),f.x),f.y),
+               mix(mix( hash(n+113.0), hash(n+114.0),f.x),
+                   mix( hash(n+270.0), hash(n+271.0),f.x),f.y),f.z);
+}
+
+
+
+float fNoise( vec3 p ){
+   
+    float n;
+    
+    n += noise( p * 20. ) * .5;
+    n += noise( p * 200. ) * .1;
+    n += noise( p * 60. ) * .3;
+    n += noise( p * 5. );
+    
+    return n;
+   
+    
+}
+
+
 vec2 map( vec3 pos )
 {
 
     vec2 res = vec2( sdBox( pos  , vec3( .4 ) ) , 1. );
-    res.x = opS( sdBox( pos  , vec3( .26  ) ) , res.x );
+    res.x = opS( sdBox( pos  , vec3( uDimensions.x * .5 + INTERSECTION_PRECISION * 5. ) ) , res.x );
 
+    vec3 p = pos;
     float s;
     pos = deform( pos, uTime, s );
 
-    res = smoothU( res , vec2( shape( pos ) * s , 2.), .05);
+
+    vec2 tessel =  vec2( shape( pos ) * s *  10. * length( p ) , 2. );
+
+    tessel.x = opS( -sdSphere( p , uDimensions.x * .3 ) , tessel.x);
+
+    res = smoothU( res , tessel , .05 * uDimensions.x * 2.);
+    return res; 
+}
+
+
+vec2 mapN( vec3 pos )
+{
+
+    //vec2 res = vec2( sdBox( pos  , vec3( .4 ) ) , 1. );
+    vec2 res = vec2(-sdBox( pos  , vec3( uDimensions.x * .5 + INTERSECTION_PRECISION * 5. ) ) , 1. );
+
+    vec3 p = pos;
+    float s;
+    pos = deform( pos, uTime, s );
+
+
+    vec2 tessel =  vec2( shape( pos ) * s *  10. * length( p ) , 2. );
+
+    tessel.x = opS( -sdSphere( p , uDimensions.x * .3 ) , tessel.x);
+
+    res = smoothU( res , tessel , .05 * uDimensions.x * 2.);
+
+    res -= .002 * fNoise( p * 10. );
     return res; 
 }
 
@@ -139,6 +219,19 @@ vec3 calcNormal( in vec3 pos ){
   return normalize(nor);
 }
 
+// Calculates the normal by taking a very small distance,
+// remapping the function, and getting normal for that
+vec3 calcNoiseNormal( in vec3 pos ){
+    
+  vec3 eps = vec3( 0.001, 0.0, 0.0 );
+  vec3 nor = vec3(
+      mapN(pos+eps.xyy).x - mapN(pos-eps.xyy).x,
+      mapN(pos+eps.yxy).x - mapN(pos-eps.yxy).x,
+      mapN(pos+eps.yyx).x - mapN(pos-eps.yyx).x );
+
+  return normalize(nor);
+}
+
 
 void main(){
 
@@ -162,9 +255,23 @@ void main(){
     vec3 norm;
 
     
-    norm = calcNormal( pos );
+    norm = calcNoiseNormal( pos );
 
-    col = norm * .5 + .5;
+    vec3 lightDir = normalize( vLight - pos);
+
+    vec3 refl = reflect( lightDir , norm );
+    col = vec3(dot( normalize(lightDir) , norm ));//* .5 + .5;
+
+    float spec = pow(max( 0. , dot( rd , refl )), 5.);
+    float lamb = max( 0. , dot( lightDir , norm ));
+
+    vec3 specC = vec3( 1. , .5 , 0.2 ) * spec;
+    vec3 lambC = vec3( 1. , .5 , 0.2 ) * lamb;
+    vec3  ambC = vec3( .2 , .01 , 0. );
+    col = specC + lambC + ambC;//* .5 + .5;
+
+
+
 
 
 
@@ -172,7 +279,7 @@ void main(){
 
 
   if( abs(vUV.x - .5) > .49 ||  abs(vUV.y - .5) > .49 ){
-    col = vec3(1.);
+    col /= vec3(2.);
   }
 
 

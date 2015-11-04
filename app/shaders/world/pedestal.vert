@@ -67,7 +67,9 @@ void main() {
     // this will screw up ( i think ... )
     vNormal   = vec3(uModel * vec4(norm, 0.0));
 
-    pos += vNormal * ( power) * .1 * max( 0., (.5 - length( aUV - vec2( .5 ))));
+    float upMatch = dot( vNormal , vec3( 0., 1. , 0.));
+
+    pos += (1. - upMatch) * vNormal * ( power) * .1 * max( 0., (.5 - length( aUV - vec2( .5 ))));
 
     vPosition = pos;
     vUV = aUV;

@@ -1,6 +1,7 @@
 #version 330 core
 
 uniform vec3 uDimensions;
+uniform float uTime;
 
 const float MAX_TRACE_DISTANCE = 2.;           // max trace distance
 const float INTERSECTION_PRECISION = 0.001;        // precision of the intersection
@@ -30,6 +31,10 @@ float opRepSphere( vec3 p, vec3 c , float r)
     return sdSphere( q  , r * 1.9- .01 * length(re) );
 }
 
+vec2 opU( vec2 d1, vec2 d2 )
+{
+    return  d1.x < d2.x ? d1 : d2 ;
+}
 
 float opS( float d1, float d2 )
 {
@@ -49,15 +54,41 @@ float sdBox( vec3 p, vec3 b )
          length(max(d,0.0));
 }
 
+
+float subCube( vec3 pos ){
+
+  float r = opRepSphere( pos , vec3( .05 * uDimensions.x * 2. )  , .025 * uDimensions.x * 2.8);
+  r = opS( r ,sdBox( pos , vec3( .125 * uDimensions.x * 2. )) );
+
+  return r;
+
+}
+
+mat4 rotateX(float angle){
+    float c = cos(angle);
+    float s = sin(angle);
+  return mat4(1.0, 0.0, 0.0, 0.0, 0.0, c, -s, 0.0, 0.0, s, c, 0.0, 0.0, 0.0, 0.0, 1.0);
+}
+
+
+mat4 rotateZ(float angle){
+    float c = cos(angle);
+    float s = sin(angle);
+  return mat4(c, -s, 0.0, 0.0, s, c, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);   
+}
 //--------------------------------
 // Modelling 
 //--------------------------------
 vec2 map( vec3 pos ){
 
+  vec2 res = vec2(-sdBox( pos  , vec3( uDimensions.x * .5 + INTERSECTION_PRECISION * 5. ) ) , 1. );
 
-  vec2 res = vec2( opRepSphere( pos , vec3( .05 * uDimensions.x * 2. )  , .025 * uDimensions.x * 2.8) , 1. );
 
-  res.x = opS(  res.x , sdBox( pos , vec3( .125 * uDimensions.x * 2. )) ) ;
+  mat4 rot = rotateX(.5 + uTime * .3 ) * rotateZ( .3 + uTime * .2 );
+
+  vec3 nPos = (rot * vec4( pos , 1. )).xyz;
+
+  res = opU( res , vec2( subCube( nPos ) , 1.));
 
   return res;
 
@@ -101,6 +132,23 @@ vec3 calcNormal( in vec3 pos ){
   return normalize(nor);
 }
 
+float calcAO( in vec3 pos, in vec3 nor )
+{
+  float occ = 0.0;
+  float sca = 2.;
+
+  for( int i=0; i<20; i++ )
+    {
+        float hr = 0.01 + 0.612*float(i)/4.0;
+        vec3 aopos =  nor * hr + pos;
+        float dd = map( aopos ).x;
+        occ += -(dd-hr)*sca;
+        sca *= 0.5;
+    }
+    return clamp( 1.0 - 3.0*occ, 0.0, 1.0 );    
+}
+
+
 
 void main(){
 
@@ -125,12 +173,32 @@ void main(){
 
     
     norm = calcNormal( pos );
+    float ao = calcAO( pos , norm );
 
-    col = norm * .5 + .5;
+    col = vec3( ao ) * (norm * .5 + .5);
+
+
+    vec3 refrR = refract( rd , norm , 1. / 1.1 );
+    vec3 refrG = refract( rd , norm , 1. / 1.2 );
+    vec3 refrB = refract( rd , norm , 1. / 1.3 );
+
+
+    float dR = -dot( refrR , norm );
+    float dG = -dot( refrG , norm );
+    float dB = -dot( refrB , norm );
+
+
+    col = vec3( dR , dG , dB );
+
 
 
 
   }
+
+  if( abs(vUV.x - .5) > .49 ||  abs(vUV.y - .5) > .49 ){
+    col = vec3( .3 , .4 , .5);
+  }
+
 
 
 

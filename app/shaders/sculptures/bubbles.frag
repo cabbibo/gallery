@@ -61,26 +61,27 @@ float opS( float d1, float d2 )
 //--------------------------------
 vec2 map( vec3 pos ){
 
+  //pos *= 2.;
 
-  vec2 res = vec2( sdBox( pos  , uDimensions * 2. ) , 1. );
-  res.x = opS( sdBox( pos  , ( uDimensions / 2. ) + vec3( INTERSECTION_PRECISION * 1.1)) , res.x );
+  vec2 res = vec2( sdBox( pos  , vec3(1.) * uDimensions ) , 1. );
+  res.x = opS( sdBox( pos  , .5 + vec3( INTERSECTION_PRECISION * 1.1)) , res.x );
 
 
   float s;
 
   //for( int i = 0; i < 6; i++){
-  s = sdSphere( pos - sPos[0], .03 * uDimensions.x * 2. );
-  res = smoothU( res , vec2( s , 2.) , .1* uDimensions.x * 2.);
-  s = sdSphere( pos - sPos[1], .03 * uDimensions.x * 2. );
-  res = smoothU( res , vec2( s , 2.) , .1* uDimensions.x * 2.);
-  s = sdSphere( pos - sPos[2], .03 * uDimensions.x * 2. );
-  res = smoothU( res , vec2( s , 2.) , .1* uDimensions.x * 2.);
-  s = sdSphere( pos - sPos[3], .03 * uDimensions.x * 2. );
-  res = smoothU( res , vec2( s , 2.) , .1* uDimensions.x * 2.);
-  s = sdSphere( pos - sPos[4], .03 * uDimensions.x * 2. );
-  res = smoothU( res , vec2( s , 2.) , .1* uDimensions.x * 2.);
-  s = sdSphere( pos - sPos[5], .03 * uDimensions.x * 2. );
-  res = smoothU( res , vec2( s , 2.) , .1 * uDimensions.x * 2.);
+  s = sdSphere( pos - sPos[0], .03  );
+  res = smoothU( res , vec2( s , 2.) , .1);
+  s = sdSphere( pos - sPos[1], .03  );
+  res = smoothU( res , vec2( s , 2.) , .1);
+  s = sdSphere( pos - sPos[2], .03  );
+  res = smoothU( res , vec2( s , 2.) , .1);
+  s = sdSphere( pos - sPos[3], .03  );
+  res = smoothU( res , vec2( s , 2.) , .1);
+  s = sdSphere( pos - sPos[4], .03  );
+  res = smoothU( res , vec2( s , 2.) , .1);
+  s = sdSphere( pos - sPos[5], .03  );
+  res = smoothU( res , vec2( s , 2.) , .1 );
   //}
 
   //vec2 res = vec2( sdBox( pos + vec3( 0., .5, 0.) , vec3( 2. , .1 , 2. ) ) , 1. );
@@ -101,7 +102,7 @@ vec2 calcIntersection( in vec3 ro, in vec3 rd ){
     
     for( int i=0; i < NUM_OF_TRACE_STEPS ; i++ ){
         
-        if( h < INTERSECTION_PRECISION || t > MAX_TRACE_DISTANCE ) break;
+        if( h < INTERSECTION_PRECISION || t > MAX_TRACE_DISTANCE * 2.) break;
         vec2 m = map( ro+rd*t );
         h = m.x;
         t += h;

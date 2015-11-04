@@ -60,7 +60,7 @@ pedestalHeight :: GLfloat
 pedestalHeight = sculptureHeight - (sculptureSize / 2)
 
 startHeight :: GLfloat
-startHeight = 2
+startHeight = 1.5
 
 -- Offset of frame behind painting
 frameOffset :: V3 GLfloat
@@ -271,6 +271,8 @@ main = do
   pTunnel2          <- createShaderProgram vs "app/shaders/paintings/tunnel2.frag"
   pCubeAndSpheres   <- createShaderProgram vs "app/shaders/paintings/cubeAndSpheres.frag"
 
+  sPit              <- createShaderProgram vs "app/shaders/sculptures/pit.frag"
+  sNoiseStep        <- createShaderProgram vs "app/shaders/sculptures/noiseStep.frag"
   sWeirdHoles1      <- createShaderProgram vs "app/shaders/sculptures/weirdHoles1.frag"
   sFieldSub         <- createShaderProgram vs "app/shaders/sculptures/fieldSub.frag"
   sBubbles          <- createShaderProgram vs "app/shaders/sculptures/bubbles.frag"
@@ -279,8 +281,8 @@ main = do
   sTesselSphere     <- createShaderProgram vs "app/shaders/sculptures/tesselSphere.frag"
 
 
-  s1  <- makeShape sculptureGeo tRaytraceProg
-  s2  <- makeShape sculptureGeo tFogProg
+  s1  <- makeShape sculptureGeo sPit
+  s2  <- makeShape sculptureGeo sNoiseStep
   s3  <- makeShape sculptureGeo sFieldSub
   s4  <- makeShape sculptureGeo sWeirdHoles1
   s5  <- makeShape sculptureGeo sBubbles
@@ -345,7 +347,7 @@ main = do
                                       { _scpPose  = getSculpturePose i 
                                       }
                                 in (i, something)
-        , _wldPlayer  = newPose {_posPosition = V3 0 startHeight 2}
+        , _wldPlayer  = newPose {_posPosition = V3 0 startHeight 1}
         , _wldRoom    = Room { _romPose = newPose {_posPosition = V3 0 0 0} }
         , _wldTime    = 0
         , _wldLight   = newPose {_posPosition = V3 0 (roomHeight) 0}
@@ -371,7 +373,7 @@ main = do
     time <- use wldTime
 
 
-    --applyMouseLook gpWindow wldPlayer
+    applyMouseLook gpWindow wldPlayer
     applyWASD gpWindow wldPlayer
     processEvents gpEvents $ \e -> do
       closeOnEscape gpWindow e
