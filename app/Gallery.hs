@@ -5,7 +5,7 @@
 
 module Main where
 
-import Game.Pal
+import Graphics.VR.Pal
 import Graphics.UI.GLFW.Pal
 import Graphics.GL.Pal
 import Graphics.GL
@@ -220,7 +220,7 @@ data Uniforms = Uniforms
 
 -}
 
-enableDevices :: [GamePalDevices]
+enableDevices :: [VRPalDevices]
 enableDevices = [UseOpenVR]
 -- enableDevices = [UseOpenVR, UseHydra]
 --enableDevices = []
@@ -228,7 +228,7 @@ enableDevices = [UseOpenVR]
 main :: IO ()
 main = do
 
-  gamePal@GamePal{..} <- reacquire 0 $ initGamePal "Gallery" NoGCPerFrame enableDevices
+  gamePal@VRPal{..} <- reacquire 0 $ initVRPal "Gallery" NoGCPerFrame enableDevices
 
   {-
 
@@ -392,7 +392,7 @@ main = do
     -- Render away!
     renderWith gamePal viewMat 
       (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
-      (render shapes )
+      (render shapes)
 
 
 
@@ -451,7 +451,7 @@ render shapes projection viewMat = do
 
 
     let model = transformationFromPose $ shiftBy roomOffset (room ^. romPose)  
-    drawShape model projection viewMat roomShape
+    drawShape' model projection viewMat roomShape
 
 
   {-
@@ -470,7 +470,7 @@ render shapes projection viewMat = do
 
 
     let model = transformationFromPose light 
-    drawShape model projection viewMat lightShape
+    drawShape' model projection viewMat lightShape
 
 
 
@@ -495,7 +495,7 @@ render shapes projection viewMat = do
 
 
       let model = transformationFromPose $ shiftBy frameOffset (obj ^. pntPose)  
-      drawShape model projection viewMat frameShape
+      drawShape' model projection viewMat frameShape
 
 
   {-
@@ -514,7 +514,7 @@ render shapes projection viewMat = do
     forM_ ( zip [0..] ( Map.toList sculptures ) ) $ \( i , (objID, obj) ) -> do
 
       let model = transformationFromPose $ shiftBy pedestalOffset  (obj ^. scpPose)  
-      drawShape model projection viewMat pedestalShape
+      drawShape' model projection viewMat pedestalShape
 
 
 
@@ -541,7 +541,7 @@ render shapes projection viewMat = do
     withVAO (sVAO shape) $ do
 
       let model = transformationFromPose $ shiftBy paintingOffset (obj ^. pntPose)  
-      drawShape model projection viewMat shape
+      drawShape' model projection viewMat shape
 
 
 
@@ -572,7 +572,7 @@ render shapes projection viewMat = do
     withVAO (sVAO shape) $ do
 
       let model = transformationFromPose $ shiftBy sculptureOffset (obj ^. scpPose)  
-      drawShape model projection viewMat shape
+      drawShape' model projection viewMat shape
 
 
 
@@ -585,8 +585,8 @@ render shapes projection viewMat = do
 
 -}
 
-drawShape ::(MonadIO m, MonadState World m) => M44 GLfloat -> M44 GLfloat -> M44 GLfloat ->  Shape Uniforms -> m ()
-drawShape model projection view shape = do 
+drawShape' ::(MonadIO m, MonadState World m) => M44 GLfloat -> M44 GLfloat -> M44 GLfloat ->  Shape Uniforms -> m ()
+drawShape' model projection view shape = do 
 
   let Uniforms{..} = sUniforms shape
 
@@ -605,7 +605,7 @@ drawShape model projection view shape = do
   uniformM44 uModel               model
   uniformM44 uNormalMatrix        (transpose . safeInv44 $ view !*! model )
 
-  let vc = vertCount (sGeometry shape)
+  let vc = geoVertCount (sGeometry shape)
   glDrawElements GL_TRIANGLES vc GL_UNSIGNED_INT nullPtr
 
 
