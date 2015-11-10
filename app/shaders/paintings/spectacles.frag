@@ -263,7 +263,7 @@ float noise( in vec3 x )
 vec3 cPal( float t ){
  return vec3( 1. - t );    
 }
-vec3 lensColor( vec3 p , vec3 n , vec3 rd ){
+vec3 lensColor( vec3 p , vec3 rd ){
     
    vec3 pos; vec3 col; float v;
     
@@ -339,7 +339,7 @@ void main(){
 
     // Lens
     if( res.y >= 4. && res.y < 10.1 ){
-      col = lensColor( pos , norm , rd );// vec3( pow((1. - dot( norm , normalize( pos ) )) , .3) );
+      col = lensColor( pos , rd );// vec3( pow((1. - dot( norm , normalize( pos ) )) , .3) );
     
     // Plane
     }else if( res.y == 20. ){
@@ -356,6 +356,11 @@ void main(){
 
 
 
+  }
+
+  if( abs(vUV.x - .5 )  >.48 || abs(vUV.y - .5 )  > .48 ){
+
+    col = lensColor( ro + rd * .1 , rd );
   }
 
 

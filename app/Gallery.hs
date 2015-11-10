@@ -264,7 +264,9 @@ main = do
   tFogProg       <- createShaderProgram vs "app/shaders/template/fogStep.frag"
 
 
-  pSphereField      <- createShaderProgram vs "app/shaders/paintings/spectacles.frag"
+  pSpectacles       <- createShaderProgram vs "app/shaders/paintings/spectacles.frag"
+  pHexAndGoo        <- createShaderProgram vs "app/shaders/paintings/hexAndGoo.frag"
+  pReflectSpheres   <- createShaderProgram vs "app/shaders/paintings/reflectSpheres.frag"
   pRedRing          <- createShaderProgram vs "app/shaders/paintings/redRing.frag"
   pTree             <- createShaderProgram vs "app/shaders/paintings/tree.frag"
   pTunnel1          <- createShaderProgram vs "app/shaders/paintings/tunnel1.frag"
@@ -291,12 +293,12 @@ main = do
   s8  <- makeShape sculptureGeo sTesselSphere
 
 
-  p1  <- makeShape paintingGeo pSphereField
-  p2  <- makeShape paintingGeo pRedRing
+  p1  <- makeShape paintingGeo pHexAndGoo
+  p2  <- makeShape paintingGeo pSpectacles
   p3  <- makeShape paintingGeo pTree
   p4  <- makeShape paintingGeo pTunnel1
   p5  <- makeShape paintingGeo pTunnel2
-  p6  <- makeShape paintingGeo pCubeAndSpheres
+  p6  <- makeShape paintingGeo pReflectSpheres
 
 
   let shapes = Shapes{ _shpRoom        = roomShape
@@ -347,7 +349,7 @@ main = do
                                       { _scpPose  = getSculpturePose i 
                                       }
                                 in (i, something)
-        , _wldPlayer  = newPose {_posPosition = V3 0 startHeight 1}
+        , _wldPlayer  = newPose {_posPosition = V3 0 0 0}
         , _wldRoom    = Room { _romPose = newPose {_posPosition = V3 0 0 0} }
         , _wldTime    = 0
         , _wldLight   = newPose {_posPosition = V3 0 (roomHeight) 0}
