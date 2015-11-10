@@ -373,7 +373,7 @@ main = do
     time <- use wldTime
 
 
-    applyMouseLook gpWindow wldPlayer
+    --applyMouseLook gpWindow wldPlayer
     applyWASD gpWindow wldPlayer
     processEvents gpEvents $ \e -> do
       closeOnEscape gpWindow e
