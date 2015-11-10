@@ -264,7 +264,7 @@ main = do
   tFogProg       <- createShaderProgram vs "app/shaders/template/fogStep.frag"
 
 
-  pSphereField      <- createShaderProgram vs "app/shaders/paintings/sphereField.frag"
+  pSphereField      <- createShaderProgram vs "app/shaders/paintings/spectacles.frag"
   pRedRing          <- createShaderProgram vs "app/shaders/paintings/redRing.frag"
   pTree             <- createShaderProgram vs "app/shaders/paintings/tree.frag"
   pTunnel1          <- createShaderProgram vs "app/shaders/paintings/tunnel1.frag"
