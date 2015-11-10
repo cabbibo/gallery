@@ -1,9 +1,9 @@
 #version 330 core
 
 
-const float MAX_TRACE_DISTANCE = 50.;           // max trace distance
-const float INTERSECTION_PRECISION = 0.001;        // precision of the intersection
-const int NUM_OF_TRACE_STEPS = 100;
+const float MAX_TRACE_DISTANCE = 5.;           // max trace distance
+const float INTERSECTION_PRECISION = 0.008;        // precision of the intersection
+const int NUM_OF_TRACE_STEPS = 40;
 const float PI  = 3.14159;
 
 uniform float uTime;
@@ -84,7 +84,7 @@ float rArc( vec3 pos , float speed, float size ){
   vec3 p = pos  + vec3( .2 * cos( uTime * speed ), .2 * sin( uTime * speed), 0.);
   p = opCheapBend( r * p , -3.);
 
-  return sdCappedCylinder( p , vec2( size * .1 , size ) );
+  return sdCappedCylinder( p , vec2( size * .2 , size ) );
 }
 
 float sdHexPrism( vec3 p, vec2 h )
@@ -119,11 +119,11 @@ vec2 map( vec3 pos ){
   mat3 r;
   vec2 res;
 
-  res = vec2( sdSphere( pos - vec3( .35 , -0.32, 0.12) , .2), 2.);
+  res = vec2( sdSphere( pos - vec3( .35 , -0.32, 0.12) , .2), 1.);
 
   r = zrotate( uTime  * .3 );
   pos = r * (ogPos- vec3( .1 , -.1 , 0.) );
-  res = smoothU( res , vec2(hexRing( pos, .3 ) , 2. ) , .02 );
+  res = smoothU( res , vec2( hexRing( pos, .3 ) , 2. ) , .02 );
 
 
   // Rotators
@@ -134,10 +134,10 @@ vec2 map( vec3 pos ){
   pos  = r * pos;
   pos -= vec3( .0 , 0.2 , 0.0 );
 
-  res = opU( res , vec2( rArc( pos - vec3( 0. , 0. , .16 ), 1.3 , .1 ) , 1. ) );
-  res = opU( res , vec2( rArc( pos - vec3( 0. , 0. , .14 ), 1.5 , .1 ) , 1. ) );
-  res = opU( res , vec2( rArc( pos - vec3( 0. , 0. , .02 ), 1.7 , .1 ) , 1. ) );
-  res = opU( res , vec2( rArc( pos - vec3( 0. , 0. , .08 ), 2.5 , .1 ) , 1. ) );
+  res = smoothU( res , vec2( rArc( pos - vec3( 0. , 0. , .16 ), 1.3 , .1 ) , 3. ) , .03 );
+  res = smoothU( res , vec2( rArc( pos - vec3( 0. , 0. , .14 ), 1.5 , .1 ) , 3. ) , .03 );
+  res = smoothU( res , vec2( rArc( pos - vec3( 0. , 0. , .02 ), 1.7 , .1 ) , 3. ) , .03 );
+  res = smoothU( res , vec2( rArc( pos - vec3( 0. , 0. , .08 ), 2.5 , .1 ) , 3. ) , .03 );
 
 
   return res;
@@ -182,6 +182,22 @@ vec3 calcNormal( in vec3 pos ){
   return normalize(nor);
 }
 
+float calcAO( in vec3 pos, in vec3 nor )
+{
+  float occ = 0.0;
+    float sca = 1.0;
+    for( int i=0; i<5; i++ )
+    {
+        float hr = 0.01 + 0.612*float(i)/4.0;
+        vec3 aopos =  nor * hr + pos;
+        float dd = map( aopos ).x;
+        occ += -(dd-hr)*sca;
+        sca *= 0.5;
+    }
+    return clamp( 1.0 - 3.0*occ, 0.0, 1.0 );    
+}
+
+
 
 void main(){
 
@@ -206,8 +222,20 @@ void main(){
 
     
     norm = calcNormal( pos );
+    vec3 lightDir = vEye - pos;
+    lightDir = normalize( lightDir );
+    float d = max( 0. , dot( lightDir,  norm ) );
 
-    col = norm * .5 + .5;
+    float ao = calcAO( pos , norm );
+
+    if( res.y < 1.9){
+      col =  vec3(0. , 0., 1.)* ao;
+    }else if( res.y >= 1.9 && res.y < 2.5 ){
+      col = vec3( 1. , .8 , .2 ) * ao ;
+
+    }else if( res.y >= 2.5 ){
+      col = vec3( 1. , 0. , 0. ) * ao * d;
+    }
 
 
 
