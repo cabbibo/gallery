@@ -2,8 +2,8 @@
 
 
 const float MAX_TRACE_DISTANCE = 5.;           // max trace distance
-const float INTERSECTION_PRECISION = 0.008;        // precision of the intersection
-const int NUM_OF_TRACE_STEPS = 40;
+const float INTERSECTION_PRECISION = 0.0008;        // precision of the intersection
+const int NUM_OF_TRACE_STEPS = 200;
 const float PI  = 3.14159;
 
 uniform float uTime;
@@ -77,14 +77,27 @@ vec2 opS( vec2 d1, vec2 d2 )
     return  -d1.x > d2.x ? d1 : d2 ;
 }
 
+vec3 mapP( vec3 p )
+{
+    vec4 grow = vec4( .4);
+    p.xyz += .300*sin(  7.0*p.yzx )*grow.x;
+    p.xyz += 0.150*sin( 20.0*p.yzx )*grow.y;
+    p.xyz += 0.075*sin( 30.5*p.yzx )*grow.z;
+    return p;
+}
+
 
 float rArc( vec3 pos , float speed, float size ){
+
+  pos /= 1.;
 
   mat3 r = zrotate( uTime * speed);
   vec3 p = pos  + vec3( .2 * cos( uTime * speed ), .2 * sin( uTime * speed), 0.);
   p = opCheapBend( r * p , -3.);
 
-  return sdCappedCylinder( p , vec2( size * .2 , size ) );
+  p = mapP( p );
+
+  return 1. * sdCappedCylinder( p , vec2( size * 2.4 , size * 1. ) );
 }
 
 float sdHexPrism( vec3 p, vec2 h )

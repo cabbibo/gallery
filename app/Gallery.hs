@@ -266,6 +266,7 @@ main = do
 
   pSpectacles       <- createShaderProgram vs "app/shaders/paintings/spectacles.frag"
   pHexAndGoo        <- createShaderProgram vs "app/shaders/paintings/hexAndGoo.frag"
+  pOwlex            <- createShaderProgram vs "app/shaders/paintings/owlex.frag"
   pReflectSpheres   <- createShaderProgram vs "app/shaders/paintings/reflectSpheres.frag"
   pRedRing          <- createShaderProgram vs "app/shaders/paintings/redRing.frag"
   pTree             <- createShaderProgram vs "app/shaders/paintings/tree.frag"
@@ -293,10 +294,10 @@ main = do
   s8  <- makeShape sculptureGeo sTesselSphere
 
 
-  p1  <- makeShape paintingGeo pHexAndGoo
+  p1  <- makeShape paintingGeo pOwlex
   p2  <- makeShape paintingGeo pSpectacles
   p3  <- makeShape paintingGeo pTree
-  p4  <- makeShape paintingGeo pTunnel1
+  p4  <- makeShape paintingGeo pHexAndGoo
   p5  <- makeShape paintingGeo pTunnel2
   p6  <- makeShape paintingGeo pReflectSpheres
 
@@ -338,7 +339,7 @@ main = do
 
 
 
-  let world = World 
+  world <- reacquire 1 $ return World 
         { _wldPaintings = Map.fromList $ flip map [0..5] $ 
                           \i -> let something = Painting
                                       { _pntPose  = getPaintingPose i
@@ -367,7 +368,7 @@ main = do
 
   -}
   void . flip runStateT world . whileWindow gpWindow $ do
-
+    persistState 1
 
     delta <- realToFrac <$> liftIO gpGetDelta
     wldTime += delta
@@ -511,7 +512,7 @@ render shapes projection viewMat = do
 
   withVAO (sVAO pedestalShape) $ do
  
-
+ 
 
     forM_ ( zip [0..] ( Map.toList sculptures ) ) $ \( i , (objID, obj) ) -> do
 

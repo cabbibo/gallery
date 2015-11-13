@@ -128,7 +128,7 @@ vec2 map( vec3 q )
 
   res = opU( vec2( d , 2. ) , res);
 
-  res = smoothU( res , vec2( sdSphere( q - vec3( .03 + .02 * sin( uTime ), 0.02 , .05 ) , .06) , 3.) , .005 );
+  res = smoothU( res , vec2( sdSphere( q - vec3( .03 , 0.02 , .05 ) , .06) , 3.) , .005 );
 
  
 
@@ -223,8 +223,8 @@ void main(){
   vec3 rd = normalize( vPos - vEye );
 
   grow.x = 1.3;
-  grow.y = 1.2+ .2 * sin( uTime);
-  grow.z = 1. + .2 * sin( uTime);
+  grow.y = 1.2+ .2;
+  grow.z = 1. + .2;
 
   //grow.x = .75 + .25 * sin( uTime * .4 + sin( uTime * .8 + sin( uTime * .2 )));
   //grow.y = .85 + .25 * sin( uTime * .38+ sin( uTime * .6 + sin( uTime * .5 )));
@@ -285,7 +285,7 @@ void main(){
 
     }else{
 
-      discard;
+      //discard;
       //col = (norm * .5 + .5) * .3;
     }
 
