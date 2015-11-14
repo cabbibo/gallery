@@ -47,6 +47,9 @@ paintingHeight = 1.5
 paintingSize :: GLfloat
 paintingSize = 0.8
 
+chunkSize :: GLfloat
+chunkSize = 0.4
+
 frameExtra :: GLfloat
 frameExtra = 0.05
 
@@ -99,6 +102,7 @@ data Shapes u = Shapes
   , _shpLight           :: Shape u
   , _shpSculptures      :: [Shape u]
   , _shpPaintings       :: [Shape u]
+  , _shpChunks          :: [Shape u]
   }
 makeLenses ''Shapes
 
@@ -139,6 +143,22 @@ data Sculpture = Sculpture
 makeLenses ''Sculpture
 
 
+{-
+
+  Chunk:
+  A chunk is a mini little painting that will contain
+  code that is loaded in elsewhere in the gallery.
+
+-}
+
+data Chunk = Chunk
+  { _cnkPose :: !(Pose GLfloat)
+  --, _scpProgram :: !Program
+  }
+makeLenses ''Chunk
+
+
+
 
 
 {-
@@ -170,14 +190,13 @@ makeLenses ''Room
 data World = World
   { _wldPaintings     :: !(Map Int Painting)
   , _wldSculptures    :: !(Map Int Sculpture)
+  , _wldChunks        :: !(Map Int Chunk)
   , _wldPlayer        :: !(Pose GLfloat)
   , _wldRoom          :: !Room
   , _wldTime          :: !Float
   , _wldLight         :: !(Pose GLfloat)
   }
 makeLenses ''World
-
-
 
 {-
 
