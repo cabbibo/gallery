@@ -31,8 +31,8 @@ const vec3 lightPos = vec3( 3. , 0.  , 0. );
 // This will just become vEye
 vec3 lookPos;
 
-vec3 lEyePos = vec3( -.05 , 0. , 0.15 );
-vec3 rEyePos = vec3( .05 , 0. , 0.15 );
+vec3 lEyePos = vec3( -.05 , 0. , 0.0 );
+vec3 rEyePos = vec3( .05 , 0. , 0.0 );
 
 mat3 lEyeMat;
 mat3 rEyeMat;
@@ -248,10 +248,14 @@ float sdPlane( vec3 p, vec4 n )
 
 vec2 map( vec3 pos ){
 
+  vec3 pOG  = pos;
   pos -= vec3( 0. , 0.  , .5 );
   pos.z = -pos.z;
+
+
+
   // Drawing the Look Position
-  vec2 res = vec2( sdSphere( pos - lookPos , .001 ) ,0. );
+  vec2 res = vec2( 100000. , -10. );// = vec2( sdSphere( pos - lookPos , .001 ) ,0. );
     
         
   
@@ -261,10 +265,9 @@ vec2 map( vec3 pos ){
   mat3 rot;
     
   
-  p = headMat * (pos - vec3( 0. , 0. , .02 )) - vec3( 0. , 0. , .02 );
-    
+  p = headMat * (vec3(pOG.xy , -pOG.z + .5) - vec3( 0. , 0. ,.1));
   // Drawing Head
-  res = opU( res , vec2( sdSphere( p   , .2 ) , 1. )); 
+  res = opU( res , vec2( sdSphere( vec3(-p.xy , -p.z) + vec3( 0., 0., .1), .2) , 1. )); 
     
     
   // Getting positino for beak
@@ -273,7 +276,7 @@ vec2 map( vec3 pos ){
   // seem exaggerated, and seems to make
   // the face strech and fold in really cool ways!
   rot = xrotate( .2 * PI );  
-  p =  rot* ( pos ) - vec3( 0. , 0.06, .22);
+  p =  rot * ( pos ) - vec3( 0. , 0.06, .22);
     
  // res = smoothU( vec2( beak( p  ) , 2.) , res , .01);
    
@@ -281,38 +284,41 @@ vec2 map( vec3 pos ){
     
   // drawing ridge
   p = headMat * (pos - vec3( 0. , 0. , .1 ));
-  res = smoothU( res , vec2( vRidge( -p - vec3( 0., 0., .0) ) , 2. ) , .05);
+  res = smoothU( res , vec2( vRidge( -p ) , 2. ) , .05);
     
  
-  // subtracking out a cont
+  // subtracking out a conE
   rot = xrotate( .5 * PI );
   res = opS( vec2( scaledCone( rot * -p , normalize( vec2( .12 , .2)) , .002) , 1.) , res);
 
   
   // redraw the head
   // So we can get some of the ridge smoothed, and other parts hard
-  p = headMat * (pos - vec3( 0. , 0. , .02 )) - vec3( 0. , 0. , .02 );
-  res = opU( res , vec2( sdSphere( p   , .2 ) , 1. )); 
+  p = headMat * (vec3(pOG.xy , -pOG.z + .5) - vec3( 0. , 0. ,.1));
+  res = opU( res , vec2( sdSphere( vec3(-p.xy , -p.z) + vec3( 0., 0., .1), .2) , 1. )); 
+    
+  // Drawing Head
+ // res = opU( res , vec2( sdSphere( vec3(-p.xy , -p.z) + vec3( 0., 0., -.1), .2) , 1. )); 
     
   // Drawing l eye
-  vec3 pl = lEyeMat * (pos - lEyePos);
+  vec3 pl = lEyeMat * (pos - lEyePos- vec3( 0. , 0. , .1 ));
     
   // Drawing r eye
-  vec3 pr = rEyeMat * (pos - rEyePos);
+  vec3 pr = rEyeMat * (pos - rEyePos- vec3( 0. , 0. , .1 ));
     
     
-  res = opS( vec2( sdSphere( pl  + vec3( 0. , 0. , .02 ), .06 ) , 3. ) , res );
-  res = opS( vec2( sdSphere( pr  + vec3( 0. , 0. , .02 ), .06 ) , 3. ) , res ); 
+  res = opS( vec2( sdSphere( pl  + vec3( 0. , 0. , .1 ), .06 ) , 3. ) , res );
+  res = opS( vec2( sdSphere( pr  + vec3( 0. , 0. , .1 ), .06 ) , 3. ) , res ); 
     
-  res = opU( res , vec2( sdSphere( pl + vec3( 0. , 0. , .04 ) , .02 ) , 4. ));   
-  res = opU( res , vec2( sdSphere( pr + vec3( 0. , 0. , .04 ) , .02 ) , 4. )); 
-    
-  res = opS( vec2( sdSphere( pl + vec3( 0. , 0. , .05 ) , .014 ) , 5. ),res);   
-  res = opS( vec2( sdSphere( pr + vec3( 0. , 0. , .05 ) , .014 ) , 5. ), res); 
+  res = opU( res , vec2( sdSphere( pl + vec3( 0. , 0. , .1 ) , .02 ) , 4. ));   
+  res = opU( res , vec2( sdSphere( pr + vec3( 0. , 0. , .1 ) , .02 ) , 4. )); 
+  
+  res = opS( vec2( sdSphere( pl + vec3( 0. , 0. , .15 ) , .014 ) , 5. ),res);   
+  res = opS( vec2( sdSphere( pr + vec3( 0. , 0. , .15 ) , .014 ) , 5. ), res); 
     
 
-    
-  res = smoothU( res , vec2( sdPlane( pos , vec4( 0. , 0., 1. , 0. ) ) , 1. ), .1 );
+
+  res = smoothU( res , vec2( sdPlane( pos , vec4( 0. , 0., 1. , 0.3 ) ) , 1. ), .1 );
     
   return res;
 
@@ -400,7 +406,7 @@ float calcAO( in vec3 pos, in vec3 nor )
 
 mat3 getInverseLookAtMatrix( vec3 p , vec3 lookPos , float roll ){
     
-  mat3 rot = calcLookAtMatrix( (p - vec3( 0. , 0. , 1.5) ) , lookPos , 0. );
+  mat3 rot = calcLookAtMatrix( vec3(p.xy , -p.z) , vec3( lookPos.xy , -lookPos.z) , 0. );
   return matInverse( rot );   
     
 }
@@ -416,7 +422,7 @@ void getEyeMatrices( in vec3 lEyeP , in vec3 rEyeP , out mat3 lEye , out mat3 rE
     
     lEye = getEyeMatrix( lEyeP );
     rEye = getEyeMatrix( rEyeP );
-    hMat = getEyeMatrix( vec3( 0. , 0. , .02 ) );
+    hMat = getEyeMatrix( vec3( 0. , 0. , .1 ) );
     
 }
 
@@ -482,13 +488,16 @@ vec3 lensColor( vec3 p , vec3 n , vec3 rd ){
 vec3 doEyeHoleColor( vec3 rd, vec3 p , vec3 n , float ao , float m  ){
     
   vec3 col = vec3( 1. - ao * ao * ao ) * m;//n * .5 + .5;//lensColor( p , n , rd ) * m * m * m;
+  //col = n * .5 + .5;
   return col;
     
 }
 
 vec3 doEyeColor( vec3 p , vec3 n , float ao , float m   ){
     
+
   vec3 col  = vec3( 1. );//vec3(ao);//vec3( 1. , 0. , 0. ) * m;
+  //col = n * .5 + .5;
   return col;
     
 }
@@ -496,6 +505,7 @@ vec3 doEyeColor( vec3 p , vec3 n , float ao , float m   ){
 vec3 doPupilColor( vec3 p , vec3 n , float ao , float m   ){
     
   vec3 col  = m *vec3( 1.4 , 0., 0.);// (n * .5 + .5);
+  col = n * .5 + .5;
   return col;
     
 }
@@ -505,6 +515,7 @@ vec3 doPupilColor( vec3 p , vec3 n , float ao , float m   ){
 vec3 doRidgeColor( vec3 p , vec3 n , float ao , float m  ){
     
   vec3 col  = vec3(m ) * vec3( 1. );// n * .5 + .5; // vec3( 1. , 1. , 1. );
+  //col = n * .5 + .5;
   return col;
     
 }
@@ -513,6 +524,7 @@ vec3 doRidgeColor( vec3 p , vec3 n , float ao , float m  ){
 vec3 doFaceColor( vec3 p , vec3 n , float ao , float m   ){
     
   vec3 col  = vec3( 1. );// vec3(ao) * m ;//vec3( 0. , 0. , 1. ) * m;
+  //col = n * .5 + .5;
   return col;
     
 }

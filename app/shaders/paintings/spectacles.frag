@@ -172,9 +172,9 @@ float sdPlane( vec3 p, vec4 n )
 vec2 map( vec3 pos ){  
    
     pos -= vec3( 0., 0. , .8);
-    pos.z = -pos.z;
+    //pos.z = -pos.z;
 
-    pos = yrotate( 1. ) * pos;
+    pos = yrotate( 2.1 ) * pos;
     vec2 ring;
 
 
@@ -182,10 +182,7 @@ vec2 map( vec3 pos ){
     vec2 plane = vec2( sdPlane( pos , vec4( 0., 1. , 0. , .17 ) ), 20. );
     
     res = opU( res , plane );
-    
-
-    
-      
+  
     return res;
     
 }
@@ -285,19 +282,16 @@ vec3 lensColor( vec3 p , vec3 rd ){
 }
 
 vec3 turtleColor( vec3 p , vec3 n ){
-    
    return vec3( 1. );
 }
 
 vec3 planeColor( vec3 p , vec3 n  , float ao ){
-    
-   
+  
    return cPal( length( p ) * .1 ) *ao;
    
 }
 
 vec3 bgColor(){
-    
    return vec3( .8 );
 }
 
@@ -306,7 +300,6 @@ void main(){
 
   vec3 ro = vPos;
   vec3 rd = normalize( vPos - vEye );
-
 
   vec3 handDir1 = normalize( vHand1 - ro);
   vec3 handDir2 = normalize( vHand2 - ro);
@@ -324,13 +317,10 @@ void main(){
     vec3 handDir1 = normalize( vHand1 - pos);
     vec3 handDir2 = normalize( vHand2 - pos);
     vec3 norm;
-
     
     norm = calcNormal( pos );
 
     float ao = calcAO( pos , norm );
-        
-      
         
     vec3 refr = refract( rd , norm , 1. / 1.2 );
     

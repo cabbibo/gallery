@@ -25,12 +25,12 @@ struct Material
 {
   float reflectivity;
   float ambient;
-  vec3 color;
+  vec3  color;
 };
 
-Material glass  = Material( .9 , 0. ,  vec3( 0., 0. , .2) );
+Material glass  = Material( .9  , 0. , vec3( 0. , 0. , .2 ) );
 Material absorb = Material( 0.1 , 0. , vec3( 1. , 0. , 0. ) );
-Material light = Material( 0.  , 1. , vec3( 1. , 1. , 1. ) );
+Material light  = Material( 0.  , 1. , vec3( 1. , 1. , 1. ) );
 
 
 
@@ -103,6 +103,7 @@ float noise( in vec3 x )
     f = f*f*(3.0-2.0*f);
   
     float n = p.x + p.y*157.0 + 113.0*p.z;
+
     return mix(mix(mix( hash(n+  0.0), hash(n+  1.0),f.x),
                    mix( hash(n+157.0), hash(n+158.0),f.x),f.y),
                mix(mix( hash(n+113.0), hash(n+114.0),f.x),
@@ -122,8 +123,7 @@ float fNoise( vec3 p ){
     n += noise( p * 60. ) * .3;
     n += noise( p * 5. );
     
-    return n;
-   
+    return n; 
     
 }
 
@@ -139,16 +139,13 @@ vec2 map( vec3 pos ){
 
   vec2 res = vec2(-sdBox( pos  , vec3( uDimensions.x * .5 + INTERSECTION_PRECISION * 2.5 ,  uDimensions.y * .5 + INTERSECTION_PRECISION * 2.5  , 1. ) ) , 1. );
 
-
   res = opU( res , vec2( sdSphere( p - vec3(0.2 , .2 , 0.3 ), .1  ) , 2. ));
   res = opU( res , vec2( sdSphere( p - vec3(0.0 , .1 , 0.4 ), .1  ) , 2. ));
   res = opU( res , vec2( sdSphere( p - vec3(-0.4 , -.2 , 0.7 ), .1  ) , 2. ));
 
-
   res = opU( res , vec2( sdSphere( p - vEye, .04  ) , 3. ));
   //vec2 res = vec2( sdHexPrism( p , vec( .4 ) ) , 1. );
  // res.x = opS( sdBox( pos  , vec3( .26  ) ) , res.x );
-
 
   return res;
 
@@ -193,6 +190,7 @@ vec3 calcNormal( in vec3 pos ){
   return normalize(nor);
 }
 
+
 float calcAO( in vec3 pos, in vec3 nor )
 {
   float occ = 0.0;
@@ -218,6 +216,7 @@ Material getMat( float v ){
   }else if( v == 3. ){
     return light;
   }
+
 }
 
 
@@ -230,11 +229,8 @@ vec3 getColor( vec3 inColor , vec3 roI , vec3 rdI , int raynum ){
   vec3 c = vec3( 0. );
 
   float rayPower = 1.;
-  
 
   for( int i= 0; i < raynum; i++ ){
-
-    
 
     vec2 res = calcIntersection( ro , rd );
 
@@ -245,17 +241,17 @@ vec3 getColor( vec3 inColor , vec3 roI , vec3 rdI , int raynum ){
       vec3 p = ro + rd * res.x;
       vec3 n = calcNormal( p );
       vec3 r = reflect( rd , n );
+
       float ao = calcAO( p , n );
 
       vec3 lightDir = vEye - p;
+
       float l = length( lightDir );
 
       rayPower -= (1. - mat.reflectivity );
 
-
       c += (1. - ao) * .1 *  vec3( .6 , .3 , .2 ) +  (.2 / l ) * (1. - mat.reflectivity) * mat.color * max( 0. , dot( normalize(lightDir), n)) + mat.color * mat.ambient; // .1 * hsv( res.y / 4. , 1. , 1. );
       
-
       ro = p + r * .02;
       rd = r;
 
@@ -277,7 +273,6 @@ void main(){
 
   vec3 ro = vPos;
   vec3 rd = normalize( vPos - vEye );
-
 
   vec3 handDir1 = normalize( vHand1 - ro);
   vec3 handDir2 = normalize( vHand2 - ro);
