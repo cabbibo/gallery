@@ -102,6 +102,36 @@ galleryShapes = do
   disform         <- createShaderProgram vs "app/shaders/chunkRender/disform.frag"
 
 
+  {-
+
+  calcSpec
+  calcLamb
+  calcFersnel
+  procNoise
+  fNoise
+  refract col
+
+  hsv
+
+  reflect
+
+  calcIntersection
+  calcNormal
+  calcAO
+
+  disform
+  calcLookAt
+
+  mixColors
+
+  fogColor ( stepwise calc intersection )
+
+
+
+  -}
+
+
+
 
   s1  <- makeShape sculptureGeo sPit
   s2  <- makeShape sculptureGeo sNoiseStep
