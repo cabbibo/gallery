@@ -86,7 +86,20 @@ galleryShapes = do
   -- all the chunks to render!
   sdSphere        <- createShaderProgram vs "app/shaders/chunkRender/sdSphere.frag"
   sdBox           <- createShaderProgram vs "app/shaders/chunkRender/sdBox.frag"
+  sdCappedCylinder<- createShaderProgram vs "app/shaders/chunkRender/sdCappedCylinder.frag"
+  sdHexPrism      <- createShaderProgram vs "app/shaders/chunkRender/sdHexPrism.frag"
+  sdPlane         <- createShaderProgram vs "app/shaders/chunkRender/sdPlane.frag"
+  sdCappedCone    <- createShaderProgram vs "app/shaders/chunkRender/sdCappedCone.frag"
+  sdTorus         <- createShaderProgram vs "app/shaders/chunkRender/sdTorus.frag"
   smoothU         <- createShaderProgram vs "app/shaders/chunkRender/smoothU.frag"
+  opU             <- createShaderProgram vs "app/shaders/chunkRender/opU.frag"
+  opS             <- createShaderProgram vs "app/shaders/chunkRender/opS.frag"
+  xrotate         <- createShaderProgram vs "app/shaders/chunkRender/xrotate.frag"
+  yrotate         <- createShaderProgram vs "app/shaders/chunkRender/yrotate.frag"
+  zrotate         <- createShaderProgram vs "app/shaders/chunkRender/zrotate.frag"
+  opRep           <- createShaderProgram vs "app/shaders/chunkRender/opRep.frag"
+  opCheapBend     <- createShaderProgram vs "app/shaders/chunkRender/opCheapBend.frag"
+  disform         <- createShaderProgram vs "app/shaders/chunkRender/disform.frag"
 
 
 
@@ -110,7 +123,26 @@ galleryShapes = do
 
   c1  <- makeShape chunkGeo sdSphere
   c2  <- makeShape chunkGeo sdBox
-  c3  <- makeShape chunkGeo smoothU
+  c3  <- makeShape chunkGeo sdHexPrism
+ 
+  c4  <- makeShape chunkGeo sdCappedCylinder
+  c5  <- makeShape chunkGeo sdCappedCone
+  c6  <- makeShape chunkGeo sdTorus
+
+  c7  <- makeShape chunkGeo opU
+  c8  <- makeShape chunkGeo opS
+  c9  <- makeShape chunkGeo smoothU
+
+  c10  <- makeShape chunkGeo xrotate
+  c11  <- makeShape chunkGeo yrotate
+  c12  <- makeShape chunkGeo zrotate
+
+
+  c13  <- makeShape chunkGeo opRep
+  c14  <- makeShape chunkGeo opCheapBend
+  c15  <- makeShape chunkGeo disform
+
+
 
 
   let shapes = Shapes{ _shpRoom        = roomShape
@@ -119,7 +151,7 @@ galleryShapes = do
                      , _shpPedestal    = pedestalShape
                      , _shpSculptures  = [s1 , s2 , s3 , s4 , s5 , s6, s7, s8]
                      , _shpPaintings   = [p1 , p2 , p4 , p3 , p6 , p5]
-                     , _shpChunks      = [c1,c2,c3,c2,c3,c1,c3,c1,c1,c1,c1,c1,c1,c1,c1,c1,c1,c1]
+                     , _shpChunks      = [c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c1,c1,c1,c1]
                      }
 
   return shapes

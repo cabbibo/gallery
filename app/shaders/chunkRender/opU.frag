@@ -29,14 +29,10 @@ float sdBox( vec3 p, vec3 b )
          length(max(d,0.0));
 }
 
-vec2 smoothU( vec2 d1, vec2 d2, float k)
+vec2 opU( vec2 d1, vec2 d2 )
 {
-    float a = d1.x;
-    float b = d2.x;
-    float h = clamp(0.5+0.5*(b-a)/k, 0.0, 1.0);
-    return vec2( mix(b, a, h) - k*h*(1.0-h), mix(d2.y, d1.y, pow(h, 2.0)));
+    return  d1.x < d2.x ? d1 : d2 ;
 }
-
 
 
 //--------------------------------
@@ -48,7 +44,7 @@ vec2 map( vec3 pos ){
 
   vec2 sphere = vec2( sdSphere( pos - vec3(.05 , .05, 0.1) , .18 ) , 1. );
   vec2 box    = vec2( sdBox( pos - vec3(-.05 , -.05, -.05) , vec3(.1,.1,.1)) , 2. );
-  vec2 res    = smoothU( sphere , box , .05 );
+  vec2 res    = opU( sphere , box );
 
   return res;
 
@@ -119,7 +115,8 @@ void main(){
 
     vec3 mixCol = mix( vec3( 1. , .2 , .2 ) , vec3( .2 , .2, 1.) , res.y - 1.);
 
-    //col = mixCol * -dot( norm , rd );
+   // col = mixCol * -dot( norm , rd );
+
     col = norm * .5 + .5;
 
   }

@@ -108,7 +108,7 @@ main = do
     time <- use wldTime
 
 
-    --applyMouseLook gpWindow wldPlayer
+    applyMouseLook gpWindow wldPlayer
     applyWASD gpWindow wldPlayer
     processEvents gpEvents $ \e -> do
       closeOnEscape gpWindow e
@@ -395,11 +395,11 @@ getChunkPose i = pose
         id = mod' fI 15
         side = ((fromIntegral i ) - id ) / 15
 
-        x = (mod' id 3) - 1
-        y = ((id - x ) / 3)
+        y = (mod' id 3)
+        x = ((id - y ) / 3)
 
         z = (0.5 - side )* roomWidth
-        pose = Pose{ _posPosition    = V3 z ((y-1) * (chunkSize + 0.1)) (x * 0.2 * roomWidth)
+        pose = Pose{ _posPosition    = V3 z ((y-1) * (chunkSize + 0.1)) ((x-2.0) * 0.1 * roomWidth)
                    , _posOrientation = axisAngle (V3 0 1 0) ((1.0 * side + 0.5) * 3.14159)
                    }
 

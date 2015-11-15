@@ -22,33 +22,23 @@ float sdSphere( vec3 p, float s ){
   return length(p)-s;
 }
 
-float sdBox( vec3 p, vec3 b )
-{
-  vec3 d = abs(p) - b;
-  return min(max(d.x,max(d.y,d.z)),0.0) +
-         length(max(d,0.0));
+
+float disformSphere( vec3 p , float s ){
+
+  float dis = sin( p.x  * 50. ) + sin( p.y * 50.) + sin( p.z * 50. );
+  dis *= .01;
+
+  return sdSphere( p , s ) + dis;
+
 }
-
-vec2 smoothU( vec2 d1, vec2 d2, float k)
-{
-    float a = d1.x;
-    float b = d2.x;
-    float h = clamp(0.5+0.5*(b-a)/k, 0.0, 1.0);
-    return vec2( mix(b, a, h) - k*h*(1.0-h), mix(d2.y, d1.y, pow(h, 2.0)));
-}
-
-
 
 //--------------------------------
 // Modelling 
 //--------------------------------
 vec2 map( vec3 pos ){
-
   pos -= vec3( 0. , 0., .2);
 
-  vec2 sphere = vec2( sdSphere( pos - vec3(.05 , .05, 0.1) , .18 ) , 1. );
-  vec2 box    = vec2( sdBox( pos - vec3(-.05 , -.05, -.05) , vec3(.1,.1,.1)) , 2. );
-  vec2 res    = smoothU( sphere , box , .05 );
+  vec2 res = vec2( disformSphere( pos , .1 ) , 1. );
 
   return res;
 
@@ -117,9 +107,6 @@ void main(){
     
     norm = calcNormal( pos );
 
-    vec3 mixCol = mix( vec3( 1. , .2 , .2 ) , vec3( .2 , .2, 1.) , res.y - 1.);
-
-    //col = mixCol * -dot( norm , rd );
     col = norm * .5 + .5;
 
   }

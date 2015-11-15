@@ -18,37 +18,30 @@ in vec2 vUV;
 out vec4 color;
 
 
-float sdSphere( vec3 p, float s ){
-  return length(p)-s;
-}
-
-float sdBox( vec3 p, vec3 b )
+vec3 opCheapBend( vec3 p , float v )
 {
-  vec3 d = abs(p) - b;
-  return min(max(d.x,max(d.y,d.z)),0.0) +
-         length(max(d,0.0));
+    float c = cos(v*p.y);
+    float s = sin(v*p.y);
+    mat2  m = mat2(c,-s,s,c);
+    vec3  q = vec3(m*p.xy,p.z);
+    return q;
 }
 
-vec2 smoothU( vec2 d1, vec2 d2, float k)
+float sdCappedCylinder( vec3 p, vec2 h )
 {
-    float a = d1.x;
-    float b = d2.x;
-    float h = clamp(0.5+0.5*(b-a)/k, 0.0, 1.0);
-    return vec2( mix(b, a, h) - k*h*(1.0-h), mix(d2.y, d1.y, pow(h, 2.0)));
+  vec2 d = abs(vec2(length(p.xz),p.y)) - h;
+  return min(max(d.x,d.y),0.0) + length(max(d,0.0));
 }
-
 
 
 //--------------------------------
 // Modelling 
 //--------------------------------
 vec2 map( vec3 pos ){
-
   pos -= vec3( 0. , 0., .2);
 
-  vec2 sphere = vec2( sdSphere( pos - vec3(.05 , .05, 0.1) , .18 ) , 1. );
-  vec2 box    = vec2( sdBox( pos - vec3(-.05 , -.05, -.05) , vec3(.1,.1,.1)) , 2. );
-  vec2 res    = smoothU( sphere , box , .05 );
+  vec3 p = opCheapBend( pos , 1. );
+  vec2 res = vec2( sdCappedCylinder( p , vec2( .04 , .15)) , 1. );
 
   return res;
 
@@ -117,9 +110,6 @@ void main(){
     
     norm = calcNormal( pos );
 
-    vec3 mixCol = mix( vec3( 1. , .2 , .2 ) , vec3( .2 , .2, 1.) , res.y - 1.);
-
-    //col = mixCol * -dot( norm , rd );
     col = norm * .5 + .5;
 
   }

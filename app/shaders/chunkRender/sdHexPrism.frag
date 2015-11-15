@@ -18,37 +18,20 @@ in vec2 vUV;
 out vec4 color;
 
 
-float sdSphere( vec3 p, float s ){
-  return length(p)-s;
-}
-
-float sdBox( vec3 p, vec3 b )
+float sdHexPrism( vec3 p, vec2 h )
 {
-  vec3 d = abs(p) - b;
-  return min(max(d.x,max(d.y,d.z)),0.0) +
-         length(max(d,0.0));
+    vec3 q = abs(p);
+    return max(q.z-h.y,max((q.x*0.866025+q.y*0.5),q.y)-h.x);
 }
-
-vec2 smoothU( vec2 d1, vec2 d2, float k)
-{
-    float a = d1.x;
-    float b = d2.x;
-    float h = clamp(0.5+0.5*(b-a)/k, 0.0, 1.0);
-    return vec2( mix(b, a, h) - k*h*(1.0-h), mix(d2.y, d1.y, pow(h, 2.0)));
-}
-
 
 
 //--------------------------------
 // Modelling 
 //--------------------------------
 vec2 map( vec3 pos ){
-
   pos -= vec3( 0. , 0., .2);
 
-  vec2 sphere = vec2( sdSphere( pos - vec3(.05 , .05, 0.1) , .18 ) , 1. );
-  vec2 box    = vec2( sdBox( pos - vec3(-.05 , -.05, -.05) , vec3(.1,.1,.1)) , 2. );
-  vec2 res    = smoothU( sphere , box , .05 );
+  vec2 res = vec2( sdHexPrism( pos , vec2( .1 , .05 ) ) , 1. );
 
   return res;
 
@@ -117,9 +100,6 @@ void main(){
     
     norm = calcNormal( pos );
 
-    vec3 mixCol = mix( vec3( 1. , .2 , .2 ) , vec3( .2 , .2, 1.) , res.y - 1.);
-
-    //col = mixCol * -dot( norm , rd );
     col = norm * .5 + .5;
 
   }

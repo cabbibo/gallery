@@ -18,37 +18,29 @@ in vec2 vUV;
 out vec4 color;
 
 
-float sdSphere( vec3 p, float s ){
-  return length(p)-s;
-}
-
-float sdBox( vec3 p, vec3 b )
+float sdCappedCone( in vec3 p, in vec3 c )
 {
-  vec3 d = abs(p) - b;
-  return min(max(d.x,max(d.y,d.z)),0.0) +
-         length(max(d,0.0));
-}
+    vec2 q = vec2( length(p.xy), -p.z - c.z );
+    vec2 v = vec2( c.z*c.y/c.x, -c.z );
 
-vec2 smoothU( vec2 d1, vec2 d2, float k)
-{
-    float a = d1.x;
-    float b = d2.x;
-    float h = clamp(0.5+0.5*(b-a)/k, 0.0, 1.0);
-    return vec2( mix(b, a, h) - k*h*(1.0-h), mix(d2.y, d1.y, pow(h, 2.0)));
-}
+    vec2 w = v - q;
 
+    vec2 vv = vec2( dot(v,v), v.x*v.x );
+    vec2 qv = vec2( dot(v,w), v.x*w.x );
+
+    vec2 d = max(qv,0.0)*qv/vv;
+
+    return sqrt( dot(w,w) - max(d.x,d.y) )* sign(max(q.y*v.x-q.x*v.y,w.y));
+}
 
 
 //--------------------------------
 // Modelling 
 //--------------------------------
 vec2 map( vec3 pos ){
-
   pos -= vec3( 0. , 0., .2);
 
-  vec2 sphere = vec2( sdSphere( pos - vec3(.05 , .05, 0.1) , .18 ) , 1. );
-  vec2 box    = vec2( sdBox( pos - vec3(-.05 , -.05, -.05) , vec3(.1,.1,.1)) , 2. );
-  vec2 res    = smoothU( sphere , box , .05 );
+  vec2 res = vec2( sdCappedCone( pos , vec3( .1 , .05 , .2) ) , 1. );
 
   return res;
 
@@ -117,9 +109,6 @@ void main(){
     
     norm = calcNormal( pos );
 
-    vec3 mixCol = mix( vec3( 1. , .2 , .2 ) , vec3( .2 , .2, 1.) , res.y - 1.);
-
-    //col = mixCol * -dot( norm , rd );
     col = norm * .5 + .5;
 
   }
