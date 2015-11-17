@@ -21,6 +21,8 @@ Flag UseOculusSDK
 executable gallery
   hs-source-dirs:      app
   main-is:             Gallery.hs
+  other-modules:       Shapes
+                       Types
   ghc-options:         -Wall -O2 -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , vr-pal
