@@ -20,20 +20,15 @@ out vec4 color;
 
 
 
+
 float sdSphere( vec3 p, float s ){
   return length(p)-s;
 }
 
-float sdBox( vec3 p, vec3 b )
+float opRepSphere( vec3 p, vec3 c , float r)
 {
-  vec3 d = abs(p) - b;
-  return min(max(d.x,max(d.y,d.z)),0.0) +
-         length(max(d,0.0));
-}
-
-vec2 opU( vec2 d1, vec2 d2 )
-{
-    return  d1.x < d2.x ? d1 : d2 ;
+    vec3 q = mod(p,c)-0.5*c;
+    return sdSphere( q  , r );
 }
 
 
@@ -41,16 +36,15 @@ vec2 opU( vec2 d1, vec2 d2 )
 // Modelling 
 //--------------------------------
 vec2 map( vec3 pos ){
-
   pos -= vec3( 0. , 0., .2);
 
-  vec2 sphere = vec2( sdSphere( pos - vec3(.05 , .05, 0.1) , .18 ) , 1. );
-  vec2 box    = vec2( sdBox( pos - vec3(-.05 , -.05, -.05) , vec3(.1,.1,.1)) , 2. );
-  vec2 res    = opU( sphere , box );
+  vec2 res = vec2( opRepSphere( pos , vec3( .1 ) ,.03 ) , 1. );
 
   return res;
 
 }
+
+
 vec2 calcIntersection( in vec3 ro, in vec3 rd ){
 
     float h =  INTERSECTION_PRECISION * 2.0;
@@ -89,6 +83,15 @@ vec3 calcNormal( in vec3 pos ){
 }
 
 
+vec3 fogColor( float dist , vec3 color , vec3 fog, float falloff ){
+
+  float val = falloff * pow( dist , 2.);
+  return mix( color , fog , val );
+
+}
+
+
+
 float calcLamb( in vec3 lightDir , in vec3 normal ){
 
   return max( 0. , dot( -lightDir , normal ));
@@ -113,6 +116,8 @@ vec3 render( vec3 ro , vec3 rd , in vec2 res ){
 
   }
 
+  col = fogColor( res.x , col , vec3( 1. , 0. , 0.) ,3.);
+
   return col;
 
 }
@@ -128,7 +133,7 @@ void main(){
 
   vec2 res = calcIntersection( ro , rd );
 
-  vec3 col = render( ro , rd , res ); 
+  vec3 col = render( ro , rd , res );
 
   if( abs(vUV.x - .5) > .49 ||  abs(vUV.y - .5) > .49 ){
     col = vec3(1.);
@@ -136,6 +141,7 @@ void main(){
 
 
   color = vec4( col , 1. );
+
 
 
 }

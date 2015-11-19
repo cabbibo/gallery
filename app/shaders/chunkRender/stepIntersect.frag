@@ -58,6 +58,7 @@ vec2 stepIntersect( vec3 ro , vec3 rd ){
 
   float lum = 0.;
   float stepID = 0.;
+  
   vec3 col = vec3( 0. );
 
   for( int i = 0; i < NUM_OF_TRACE_STEPS; i++ ){
@@ -73,12 +74,9 @@ vec2 stepIntersect( vec3 ro , vec3 rd ){
 
     if( val > INTERSECTION_PRECISION ) break;
 
-
-
   }
 
   return vec2( lum , stepID );
-
 
 }
 
@@ -97,7 +95,7 @@ void main(){
 
   vec2 res = stepIntersect( ro , rd );
 
-  col = hsv( res.y  , 1. , 1. );
+  col = hsv( res.y , 1. , 1. );
 
   if( abs(vUV.x - .5) > .49 ||  abs(vUV.y - .5) > .49 ){
     col = vec3(1.);

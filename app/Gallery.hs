@@ -46,7 +46,7 @@ enableDevices = [UseOpenVR]
 main :: IO ()
 main = do
 
-  gamePal@VRPal{..} <- reacquire 0 $ initVRPal "Gallery" GCPerFrame enableDevices
+  gamePal@VRPal{..} <- reacquire 0 $ initVRPal "Gallery" NoGCPerFrame enableDevices
 
 
   {-
@@ -71,12 +71,12 @@ main = do
   -}
 
   world <- reacquire 1 $ return World 
-        { _wldPaintings = Map.fromList $ flip map [0..5] $ 
+        { _wldPaintings = Map.fromList $ flip map [0..length (shapes ^. shpPaintings)-1] $ 
                           \i -> let something = Painting
                                       { _pntPose  = getPaintingPose i
                                       }
                                 in (i, something)
-        , _wldSculptures = Map.fromList $ flip map [0..7] $ 
+        , _wldSculptures = Map.fromList $ flip map [0..length (shapes ^. shpSculptures)-1] $ 
                           \i -> let something = Sculpture
                                       { _scpPose  = getSculpturePose i 
                                       }
@@ -108,7 +108,7 @@ main = do
     time <- use wldTime
 
 
-    -- applyMouseLook gpWindow wldPlayer
+    applyMouseLook gpWindow wldPlayer
     applyWASD gpWindow wldPlayer
     processEvents gpEvents $ \e -> do
       closeOnEscape gpWindow e

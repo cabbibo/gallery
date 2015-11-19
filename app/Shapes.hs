@@ -112,6 +112,8 @@ galleryShapes = do
                       , "fNoise"
                       , "hsv"
                       , "stepIntersect"
+                      , "fogColor"
+                      --, "calcIntersection"
                       ]
 
 
@@ -122,11 +124,9 @@ galleryShapes = do
   {-
 
   calcIntersection
-  stepIntersect   
       
   refractCol      
-         
-  fogColor        
+       
   calcLookAt      
   reflectRay      
 
