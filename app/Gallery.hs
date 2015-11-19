@@ -81,7 +81,7 @@ main = do
                                       { _scpPose  = getSculpturePose i 
                                       }
                                 in (i, something)
-        , _wldChunks = Map.fromList $ flip map [0..17] $ 
+        , _wldChunks = Map.fromList $ flip map [0..length (shapes ^. shpChunks)-1] $ 
                           \i -> let something = Chunk
                                       { _cnkPose  = getChunkPose i 
                                       }
@@ -257,9 +257,9 @@ render shapes projection viewMat = do
   -}
   chunks <- use wldChunks
 
-  forM_ ( zip [0..] ( Map.toList chunks ) ) $ \( i , (objID, obj) ) -> do
+  forM_ ( zip chunkShapes ( Map.toList chunks ) ) $ \( shape , (objID, obj) ) -> do
 
-    let shape = (chunkShapes !! i)
+    --let shape = (chunkShapes !! i)
     useProgram (sProgram shape)
 
     let Uniforms{..} = sUniforms shape
@@ -281,9 +281,9 @@ render shapes projection viewMat = do
   -}
   paintings <- use wldPaintings
 
-  forM_ ( zip [0..] ( Map.toList paintings ) ) $ \( i , (objID, obj) ) -> do
+  forM_ ( zip paintingShapes ( Map.toList paintings ) ) $ \( shape , (objID, obj) ) -> do
 
-    let shape = (paintingShapes !! i)
+    --let shape = (paintingShapes !! i)
     useProgram (sProgram shape)
 
     let Uniforms{..} = sUniforms shape
@@ -312,9 +312,9 @@ render shapes projection viewMat = do
   
   sculptures <- use wldSculptures
 
-  forM_ ( zip [0..] ( Map.toList sculptures ) ) $ \( i , (objID, obj) ) -> do
+  forM_ ( zip sculptureShapes ( Map.toList sculptures ) ) $ \( shape , (objID, obj) ) -> do
 
-    let shape = (sculptureShapes !! i)
+    ---let shape = (sculptureShapes !! i)
     useProgram (sProgram shape)
 
     let Uniforms{..} = sUniforms shape
