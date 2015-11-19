@@ -39,14 +39,14 @@ import Shapes
 -}
 
 enableDevices :: [VRPalDevices]
--- enableDevices = [UseOpenVR]
+enableDevices = [UseOpenVR]
 -- enableDevices = [UseOpenVR, UseHydra]
-enableDevices = []
+-- enableDevices = []
 
 main :: IO ()
 main = do
 
-  gamePal@VRPal{..} <- reacquire 0 $ initVRPal "Gallery" NoGCPerFrame enableDevices
+  gamePal@VRPal{..} <- reacquire 0 $ initVRPal "Gallery" GCPerFrame enableDevices
 
 
   {-
@@ -108,7 +108,7 @@ main = do
     time <- use wldTime
 
 
-    applyMouseLook gpWindow wldPlayer
+    -- applyMouseLook gpWindow wldPlayer
     applyWASD gpWindow wldPlayer
     processEvents gpEvents $ \e -> do
       closeOnEscape gpWindow e
