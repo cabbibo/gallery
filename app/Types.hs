@@ -8,6 +8,7 @@ module Types where
 --import Graphics.VR.Pal
 --import Graphics.UI.GLFW.Pal
 import Graphics.GL.Pal
+import Graphics.GL.Freetype
 --import Graphics.GL
 --import Linear
 --import Control.Monad.State
@@ -83,6 +84,87 @@ roomOffset :: V3 GLfloat
 roomOffset = V3 0 (roomHeight/2) 0
 
 
+-- PAINTINGS
+paintingShaders = [ "spectacles"
+                  , "hexAndGoo"
+                  , "owlex"
+                  , "reflectSpheres"
+                  --, "redRing"
+                  , "tree"
+                  --, "tunnel1"
+                  , "tunnel2"
+                  , "cubeAndSpheres"
+                  ]
+
+-- SCULPTURES
+sculptureShaders =  [ "pit"
+                    , "noiseStep"
+                    , "weirdHoles1"
+                    , "fieldSub"
+                    , "bubbles"
+                    , "cubeSubField"
+                    , "tessel"
+                    , "tesselSphere"
+                    ]
+
+-- CHUNKS
+chunkShaders =  [ "sdSphere"
+                , "sdBox"
+                , "sdCappedCylinder"
+                , "sdHexPrism"
+                --, "sdPlane"
+                , "sdCappedCone"
+                , "sdTorus"
+                , "smoothU"
+                , "opU"
+                , "opS"
+                , "xrotate"
+                , "yrotate"
+                , "zrotate"
+                , "opRep"
+                , "opCheapBend"
+                , "disform"
+
+
+                , "calcSpec"
+                , "calcLamb"
+                , "calcNormal"
+                , "calcAO"
+                , "calcFresnel"
+
+                , "noise"
+                , "fNoise"
+                , "hsv"
+                , "stepIntersect"
+                , "fogColor"
+                --, "calcIntersection"
+                ]
+
+
+
+{-
+
+  Uniforms:
+
+  A Big list of uniforms we use across our programs
+  
+
+-}
+
+data Uniforms = Uniforms
+  { uModelViewProjection :: UniformLocation (M44 GLfloat)
+  , uViewProjection      :: UniformLocation (M44 GLfloat)
+  , uNormalMatrix        :: UniformLocation (M44 GLfloat)
+  , uInverseModel        :: UniformLocation (M44 GLfloat)
+  , uModel               :: UniformLocation (M44 GLfloat)
+  , uEye                 :: UniformLocation (V3  GLfloat)
+  , uHand1               :: UniformLocation (V3  GLfloat)
+  , uHand2               :: UniformLocation (V3  GLfloat)
+  , uLight               :: UniformLocation (V3  GLfloat)
+  , uTime                :: UniformLocation GLfloat
+  , uDimensions          :: UniformLocation (V3  GLfloat)
+  } deriving (Data)
+
 
 {-
 
@@ -120,10 +202,13 @@ makeLenses ''Shapes
 -}
 
 data Painting = Painting
-  { _pntPose :: !(Pose GLfloat)
-  --, _pntProgram :: !Program
+  { _pntPose     :: !(Pose GLfloat)
+  , _pntGetShape :: !(IO (Shape Uniforms, String))
+  , _pntBuffer   :: !TextBuffer
+  , _pntScroll   :: !GLfloat
   }
 makeLenses ''Painting
+
 
 
 
@@ -137,11 +222,12 @@ makeLenses ''Painting
 -}
 
 data Sculpture = Sculpture
-  { _scpPose :: !(Pose GLfloat)
-  --, _scpProgram :: !Program
+  { _scpPose     :: !(Pose GLfloat)
+  , _scpGetShape :: !(IO (Shape Uniforms, String))
+  , _scpBuffer   :: !TextBuffer
+  , _scpScroll   :: !GLfloat
   }
 makeLenses ''Sculpture
-
 
 {-
 
@@ -152,8 +238,10 @@ makeLenses ''Sculpture
 -}
 
 data Chunk = Chunk
-  { _cnkPose :: !(Pose GLfloat)
-  --, _scpProgram :: !Program
+  { _cnkPose     :: !(Pose GLfloat)
+  , _cnkGetShape :: !(IO (Shape Uniforms, String))
+  , _cnkBuffer   :: !TextBuffer
+  , _cnkScroll   :: !GLfloat
   }
 makeLenses ''Chunk
 
@@ -186,39 +274,19 @@ makeLenses ''Room
 
 -}
 
+type GalleryObjectID = Int
 
 data World = World
-  { _wldPaintings     :: !(Map Int Painting)
-  , _wldSculptures    :: !(Map Int Sculpture)
-  , _wldChunks        :: !(Map Int Chunk)
-  , _wldPlayer        :: !(Pose GLfloat)
-  , _wldRoom          :: !Room
-  , _wldTime          :: !Float
-  , _wldLight         :: !(Pose GLfloat)
+  { _wldPaintings       :: !(Map Int Painting)
+  , _wldSculptures      :: !(Map Int Sculpture)
+  , _wldChunks          :: !(Map Int Chunk)
+  , _wldPlayer          :: !(Pose GLfloat)
+  , _wldRoom            :: !Room
+  , _wldTime            :: !Float
+  , _wldLight           :: !(Pose GLfloat)
+  , _wldFocusedObjectID :: !GalleryObjectID
   }
 makeLenses ''World
 
-{-
-
-  Uniforms:
-
-  A Big list of uniforms we use across our programs
-  
-
--}
-
-data Uniforms = Uniforms
-  { uModelViewProjection :: UniformLocation (M44 GLfloat)
-  , uViewProjection      :: UniformLocation (M44 GLfloat)
-  , uNormalMatrix        :: UniformLocation (M44 GLfloat)
-  , uInverseModel        :: UniformLocation (M44 GLfloat)
-  , uModel               :: UniformLocation (M44 GLfloat)
-  , uEye                 :: UniformLocation (V3  GLfloat)
-  , uHand1               :: UniformLocation (V3  GLfloat)
-  , uHand2               :: UniformLocation (V3  GLfloat)
-  , uLight               :: UniformLocation (V3  GLfloat)
-  , uTime                :: UniformLocation GLfloat
-  , uDimensions          :: UniformLocation (V3  GLfloat)
-  } deriving (Data)
 
 

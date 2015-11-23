@@ -60,63 +60,6 @@ galleryShapes = do
   let vs = "app/shaders/template/raytrace.vert"
 
 
-  -- PAINTINGS
-  let paintingShaders = [ "spectacles"
-                        , "hexAndGoo"
-                        , "owlex"
-                        , "reflectSpheres"
-                        --, "redRing"
-                        , "tree"
-                        --, "tunnel1"
-                        , "tunnel2"
-                        , "cubeAndSpheres"
-                        ]
-
-  -- SCULPTURES
-  let sculptureShaders =  [ "pit"
-                          , "noiseStep"
-                          , "weirdHoles1"
-                          , "fieldSub"
-                          , "bubbles"
-                          , "cubeSubField"
-                          , "tessel"
-                          , "tesselSphere"
-                          ]
-
-  -- CHUNKS
-  let chunkShaders =  [ "sdSphere"
-                      , "sdBox"
-                      , "sdCappedCylinder"
-                      , "sdHexPrism"
-                      --, "sdPlane"
-                      , "sdCappedCone"
-                      , "sdTorus"
-                      , "smoothU"
-                      , "opU"
-                      , "opS"
-                      , "xrotate"
-                      , "yrotate"
-                      , "zrotate"
-                      , "opRep"
-                      , "opCheapBend"
-                      , "disform"
-
-
-                      , "calcSpec"
-                      , "calcLamb"
-                      , "calcNormal"
-                      , "calcAO"
-                      , "calcFresnel"
-
-                      , "noise"
-                      , "fNoise"
-                      , "hsv"
-                      , "stepIntersect"
-                      , "fogColor"
-                      --, "calcIntersection"
-                      ]
-
-
   paintingShapes  <- makeShapes paintingGeo   vs "app/shaders/paintings/"    paintingShaders
   sculptureShapes <- makeShapes sculptureGeo  vs "app/shaders/sculptures/"   sculptureShaders
   chunkShapes     <- makeShapes chunkGeo      vs "app/shaders/chunkRender/"  chunkShaders
