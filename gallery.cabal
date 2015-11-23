@@ -41,6 +41,8 @@ executable gallery
                      , lens
                      , linear
                      , split
+                     , tinyrick
+                     , freetype-gl-mini
 
   default-language:    Haskell2010
 

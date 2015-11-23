@@ -11,7 +11,8 @@ import Graphics.GL.Pal
 import Graphics.GL
 import Linear
 import Control.Monad.State
-import Control.Lens
+import Control.Monad.Reader
+import Control.Lens.Extra
 import Data.Data
 import Data.Maybe
 import Data.List.Split
@@ -22,6 +23,9 @@ import Data.Fixed
 import Debug.Trace
 import System.Random
 import Control.Monad.Random
+
+import Graphics.GL.Freetype
+import TinyRick
 
 import Halive.Utils
 
@@ -43,12 +47,41 @@ enableDevices = [UseOpenVR]
 -- enableDevices = [UseOpenVR, UseHydra]
 -- enableDevices = []
 
+
+
+newWorld :: Font -> IO World
+newWorld font = do
+  
+  sculptures  <- buildSculptures font
+  paintings   <- buildPaintings font
+  chunks      <- buildChunks font
+
+  return World 
+
+        { _wldSculptures      = sculptures
+        , _wldPaintings       = paintings
+        , _wldChunks          = chunks
+        , _wldFocusedObjectID = 0
+
+        , _wldPlayer  = Pose {_posOrientation = axisAngle (V3 0 1 0) 3.14 , _posPosition = V3 0 0 0}
+        , _wldRoom    = Room { _romPose = newPose {_posPosition = V3 0 0 0} }
+        , _wldTime    = 0
+        , _wldLight   = newPose {_posPosition = V3 0 (roomHeight) 0}
+
+        }
+
 main :: IO ()
 main = do
 
-  gamePal@VRPal{..} <- reacquire 0 $ initVRPal "Gallery" NoGCPerFrame enableDevices
+  vrPal@VRPal{..} <- reacquire 0 $ initVRPal "Gallery" GCPerFrame enableDevices
 
 
+  {-
+    Setting up our resources to render the text
+  -}
+  glyphProg <- createShaderProgram "app/shaders/world/glyph.vert" "app/shaders/world/glyph.frag"
+  font      <- createFont "app/fonts/SourceCodePro-Regular.ttf" 50 glyphProg
+  
   {-
 
     Setting up some gl information
@@ -70,27 +103,7 @@ main = do
 
   -}
 
-  world <- reacquire 1 $ return World 
-        { _wldPaintings = Map.fromList $ flip map [0..length (shapes ^. shpPaintings)-1] $ 
-                          \i -> let something = Painting
-                                      { _pntPose  = getPaintingPose i
-                                      }
-                                in (i, something)
-        , _wldSculptures = Map.fromList $ flip map [0..length (shapes ^. shpSculptures)-1] $ 
-                          \i -> let something = Sculpture
-                                      { _scpPose  = getSculpturePose i 
-                                      }
-                                in (i, something)
-        , _wldChunks = Map.fromList $ flip map [0..length (shapes ^. shpChunks)-1] $ 
-                          \i -> let something = Chunk
-                                      { _cnkPose  = getChunkPose i 
-                                      }
-                                in (i, something)
-        , _wldPlayer  = Pose {_posOrientation = axisAngle (V3 0 1 0) 3.14 , _posPosition = V3 0 0 0}
-        , _wldRoom    = Room { _romPose = newPose {_posPosition = V3 0 0 0} }
-        , _wldTime    = 0
-        , _wldLight   = newPose {_posPosition = V3 0 (roomHeight) 0}
-        }
+  world <- reacquire 1 (newWorld font)
 
 
   {-
@@ -123,11 +136,14 @@ main = do
     viewMat <- viewMatrixFromPose <$> use wldPlayer
 
 
+
     -- Once we have set up all the neccesary information,
     -- Render away!
-    renderWith gamePal viewMat 
+    immutably $ renderWith vrPal viewMat
       (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
       (render shapes)
+
+
 
 
 
@@ -173,6 +189,8 @@ render shapes projection viewMat = do
 
   glEnable GL_CULL_FACE
   glCullFace GL_FRONT
+  glClearColor 0 0 0.1 1
+  glBlendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
 
   room <- use wldRoom
 
@@ -229,6 +247,25 @@ render shapes projection viewMat = do
       drawShape' model projection viewMat frameShape
 
 
+    -- And their code
+  -- glDisable GL_DEPTH_TEST
+  glDisable GL_CULL_FACE
+  glEnable  GL_BLEND
+  forM_ paintings $ \obj -> do
+    let buffer = obj ^. pntBuffer
+        font   = bufFont buffer
+        pose   = id
+               . shiftBy (V3 (1.618 * paintingSize / 2) (paintingHeight + paintingSize/2) 0.01)
+               $ newPose { _posPosition = obj ^. pntPose . posPosition }
+        model44 = transformationFromPose pose
+        mvp = projection !*! viewMat !*! model44 !*! scaleMatrix 0.02
+    renderText font (bufText buffer) (bufSelection buffer) mvp
+
+  -- glEnable GL_DEPTH_TEST
+  glEnable  GL_CULL_FACE
+  glDisable GL_BLEND
+
+
   {-
 
     Render the Pedestals
@@ -246,6 +283,27 @@ render shapes projection viewMat = do
 
       let model = transformationFromPose $ shiftBy pedestalOffset  (obj ^. scpPose)  
       drawShape' model projection viewMat pedestalShape
+
+
+  -- And their code
+  -- glDisable GL_DEPTH_TEST
+  glDisable GL_CULL_FACE
+  glEnable  GL_BLEND
+  forM_ sculptures $ \obj -> do
+    let buffer = obj ^. scpBuffer
+        font   = bufFont buffer
+        pose   = id
+               -- . rotateBy (axisAngle (V3 1 0 0) (-pi/4 - 0.4))
+               . shiftBy (V3 (-sculptureSize/2) ( sculptureHeight+sculptureSize * 2) sculptureSize/1.5)
+               $ newPose { _posPosition = obj ^. scpPose . posPosition }
+        model44 = transformationFromPose pose
+        mvp = projection !*! viewMat !*! model44 !*! scaleMatrix 0.02
+    renderText font (bufText buffer) (bufSelection buffer) mvp
+
+  -- glEnable GL_DEPTH_TEST
+  glEnable  GL_CULL_FACE
+  glDisable GL_BLEND
+
 
 
 
@@ -271,6 +329,26 @@ render shapes projection viewMat = do
       let model = transformationFromPose $ shiftBy paintingOffset (obj ^. cnkPose)  
       drawShape' model projection viewMat shape
 
+
+
+  -- And their code
+  -- glDisable GL_DEPTH_TEST
+  glDisable GL_CULL_FACE
+  glEnable  GL_BLEND
+  forM_ sculptures $ \obj -> do
+    let buffer = obj ^. scpBuffer
+        font   = bufFont buffer
+        pose   = id
+               -- . rotateBy (axisAngle (V3 1 0 0) (-pi/4 - 0.4))
+               . shiftBy (V3 (-sculptureSize/2) ( sculptureHeight+sculptureSize) sculptureSize/1.5)
+               $ newPose { _posPosition = obj ^. scpPose . posPosition }
+        model44 = transformationFromPose pose
+        mvp = projection !*! viewMat !*! model44 !*! scaleMatrix 0.02
+    renderText font (bufText buffer) (bufSelection buffer) mvp
+
+  -- glEnable GL_DEPTH_TEST
+  glEnable  GL_CULL_FACE
+  glDisable GL_BLEND
 
 
 
@@ -362,6 +440,70 @@ drawShape' model projection view shape = do
   glDrawElements GL_TRIANGLES vc GL_UNSIGNED_INT nullPtr
 
 
+
+buildSculptures :: (Enum k, Num k, Ord k, Integral k) => Font -> IO (Map.Map k Sculpture)
+buildSculptures font = do
+
+  sculptureGeo <- cubeGeometry (V3 sculptureSize sculptureSize sculptureSize) (V3 1 1 1)
+
+  fmap Map.fromList $ forM (zip [0..] sculptureShaders) $ \(i, shaderName) -> do
+    let shaderPath = "app/shaders/sculptures/" ++ shaderName ++ ".frag"
+    shaderComp <- shaderRecompiler "app/shaders/template/raytrace.vert" shaderPath (makeShape sculptureGeo)
+    
+    buffer <- bufferFromFile font shaderPath
+    updateIndicesAndOffsets buffer
+    let sculpture = Sculpture
+                  { _scpPose     = getSculpturePose (fI i)
+                  , _scpGetShape = shaderComp 
+                  , _scpBuffer   = buffer
+                  , _scpScroll   = 0
+                  }
+
+    return (i, sculpture)
+
+
+buildPaintings :: (Enum k, Num k, Ord k, Integral k) => Font -> IO (Map.Map k Painting)
+buildPaintings font = do
+  
+  paintingGeo <- planeGeometry (V2 (1.618 * paintingSize) paintingSize ) (V3 0 0 (-1)) (V3 0 1 0) (V2 1 1)
+
+  -- paintingShaders defined in 'Types.hs'
+  fmap Map.fromList $ forM (zip [0..] paintingShaders) $ \(i, shaderName) -> do
+    let shaderPath = "app/shaders/paintings/" ++ shaderName ++ ".frag"
+    shaderComp <- shaderRecompiler "app/shaders/template/raytrace.vert" shaderPath (makeShape paintingGeo)
+    
+    buffer <- bufferFromFile font shaderPath
+    updateIndicesAndOffsets buffer
+    let painting = Painting
+                  { _pntPose     = getPaintingPose (fI i)
+                  , _pntGetShape = shaderComp 
+                  , _pntBuffer   = buffer
+                  , _pntScroll   = 0
+                  }
+
+    return (i, painting)
+
+
+buildChunks :: (Enum k, Num k, Ord k, Integral k) => Font -> IO (Map.Map k Chunk)
+buildChunks font = do
+  
+  chunkGeo <- planeGeometry (V2 chunkSize chunkSize) (V3 0 0 (-1)) (V3 0 1 0) (V2 1 1)
+
+  -- chunkShaders defined in 'Types.hs'
+  fmap Map.fromList $ forM (zip [0..] chunkShaders) $ \(i, shaderName) -> do
+    let shaderPath = "app/shaders/chunkRender/" ++ shaderName ++ ".frag"
+    shaderComp <- shaderRecompiler "app/shaders/template/raytrace.vert" shaderPath (makeShape chunkGeo)
+    
+    buffer <- bufferFromFile font shaderPath
+    updateIndicesAndOffsets buffer
+    let chunk = Chunk
+                  { _cnkPose     = getChunkPose (fI i)
+                  , _cnkGetShape = shaderComp 
+                  , _cnkBuffer   = buffer
+                  , _cnkScroll   = 0
+                  }
+
+    return (i, chunk)
 
 
 --getPaintingPose :: Int -> Pose
