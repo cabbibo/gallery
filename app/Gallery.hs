@@ -73,7 +73,7 @@ newWorld font = do
 main :: IO ()
 main = do
 
-  vrPal@VRPal{..} <- reacquire 0 $ initVRPal "Gallery" GCPerFrame enableDevices
+  vrPal@VRPal{..} <- reacquire 0 $ initVRPal "Gallery" enableDevices
 
 
   {-
