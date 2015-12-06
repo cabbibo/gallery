@@ -252,14 +252,12 @@ render shapes projection viewMat = do
   glDisable GL_CULL_FACE
   glEnable  GL_BLEND
   forM_ paintings $ \obj -> do
-    let buffer = obj ^. pntBuffer
-        font   = bufFont buffer
-        pose   = id
+    let pose   = id
                . shiftBy (V3 (1.618 * paintingSize / 2) (paintingHeight + paintingSize/2) 0.01)
                $ newPose { _posPosition = obj ^. pntPose . posPosition }
         model44 = transformationFromPose pose
-        mvp = projection !*! viewMat !*! model44 !*! scaleMatrix 0.02
-    renderText font (bufText buffer) (bufSelection buffer) mvp
+        mvp = projection !*! viewMat !*! model44
+    renderText (obj ^. pntTextRenderer) mvp (V3 1 1 1)
 
   -- glEnable GL_DEPTH_TEST
   glEnable  GL_CULL_FACE
@@ -290,15 +288,13 @@ render shapes projection viewMat = do
   glDisable GL_CULL_FACE
   glEnable  GL_BLEND
   forM_ sculptures $ \obj -> do
-    let buffer = obj ^. scpBuffer
-        font   = bufFont buffer
-        pose   = id
+    let pose   = id
                -- . rotateBy (axisAngle (V3 1 0 0) (-pi/4 - 0.4))
                . shiftBy (V3 (-sculptureSize/2) ( sculptureHeight+sculptureSize * 2) sculptureSize/1.5)
                $ newPose { _posPosition = obj ^. scpPose . posPosition }
         model44 = transformationFromPose pose
-        mvp = projection !*! viewMat !*! model44 !*! scaleMatrix 0.02
-    renderText font (bufText buffer) (bufSelection buffer) mvp
+        mvp = projection !*! viewMat !*! model44
+    renderText (obj ^. scpTextRenderer) mvp (V3 1 1 1)
 
   -- glEnable GL_DEPTH_TEST
   glEnable  GL_CULL_FACE
@@ -336,15 +332,13 @@ render shapes projection viewMat = do
   glDisable GL_CULL_FACE
   glEnable  GL_BLEND
   forM_ sculptures $ \obj -> do
-    let buffer = obj ^. scpBuffer
-        font   = bufFont buffer
-        pose   = id
+    let pose   = id
                -- . rotateBy (axisAngle (V3 1 0 0) (-pi/4 - 0.4))
                . shiftBy (V3 (-sculptureSize/2) ( sculptureHeight+sculptureSize) sculptureSize/1.5)
                $ newPose { _posPosition = obj ^. scpPose . posPosition }
         model44 = transformationFromPose pose
-        mvp = projection !*! viewMat !*! model44 !*! scaleMatrix 0.02
-    renderText font (bufText buffer) (bufSelection buffer) mvp
+        mvp = projection !*! viewMat !*! model44
+    renderText (obj ^. scpTextRenderer) mvp (V3 1 1 1)
 
   -- glEnable GL_DEPTH_TEST
   glEnable  GL_CULL_FACE
@@ -426,15 +420,15 @@ drawShape' model projection view shape = do
 
 
   -- Recalculating for each object. doesn't make sense!
-  uniformV3 uEye (fromMaybe view (inv44 view) ^. translation)
+  uniformV3 uEye (inv44 view ^. translation)
   uniformV3 uLight ((light ^. posPosition)- (V3 0 0.3 0))
   uniformF  uTime time
 
   uniformM44 uViewProjection      (projection !*! view)
   uniformM44 uModelViewProjection (projection !*! view !*! model)
-  uniformM44 uInverseModel        (fromMaybe model (inv44 model))
+  uniformM44 uInverseModel        (inv44 model)
   uniformM44 uModel               model
-  uniformM44 uNormalMatrix        (transpose . safeInv44 $ view !*! model )
+  uniformM44 uNormalMatrix        (transpose . inv44 $ view !*! model )
 
   let vc = geoVertCount (sGeometry shape)
   glDrawElements GL_TRIANGLES vc GL_UNSIGNED_INT nullPtr
@@ -450,13 +444,12 @@ buildSculptures font = do
     let shaderPath = "app/shaders/sculptures/" ++ shaderName ++ ".frag"
     shaderComp <- shaderRecompiler "app/shaders/template/raytrace.vert" shaderPath (makeShape sculptureGeo)
     
-    buffer <- bufferFromFile font shaderPath
-    updateIndicesAndOffsets buffer
+    textRenderer <- textRendererFromFile font shaderPath
     let sculpture = Sculpture
-                  { _scpPose     = getSculpturePose (fI i)
-                  , _scpGetShape = shaderComp 
-                  , _scpBuffer   = buffer
-                  , _scpScroll   = 0
+                  { _scpPose         = getSculpturePose (fI i)
+                  , _scpGetShape     = shaderComp 
+                  , _scpTextRenderer = textRenderer
+                  , _scpScroll       = 0
                   }
 
     return (i, sculpture)
@@ -472,13 +465,12 @@ buildPaintings font = do
     let shaderPath = "app/shaders/paintings/" ++ shaderName ++ ".frag"
     shaderComp <- shaderRecompiler "app/shaders/template/raytrace.vert" shaderPath (makeShape paintingGeo)
     
-    buffer <- bufferFromFile font shaderPath
-    updateIndicesAndOffsets buffer
+    textRenderer <- textRendererFromFile font shaderPath
     let painting = Painting
-                  { _pntPose     = getPaintingPose (fI i)
-                  , _pntGetShape = shaderComp 
-                  , _pntBuffer   = buffer
-                  , _pntScroll   = 0
+                  { _pntPose         = getPaintingPose (fI i)
+                  , _pntGetShape     = shaderComp 
+                  , _pntTextRenderer = textRenderer
+                  , _pntScroll       = 0
                   }
 
     return (i, painting)
@@ -494,13 +486,12 @@ buildChunks font = do
     let shaderPath = "app/shaders/chunkRender/" ++ shaderName ++ ".frag"
     shaderComp <- shaderRecompiler "app/shaders/template/raytrace.vert" shaderPath (makeShape chunkGeo)
     
-    buffer <- bufferFromFile font shaderPath
-    updateIndicesAndOffsets buffer
+    textRenderer <- textRendererFromFile font shaderPath
     let chunk = Chunk
-                  { _cnkPose     = getChunkPose (fI i)
-                  , _cnkGetShape = shaderComp 
-                  , _cnkBuffer   = buffer
-                  , _cnkScroll   = 0
+                  { _cnkPose         = getChunkPose (fI i)
+                  , _cnkGetShape     = shaderComp 
+                  , _cnkTextRenderer = textRenderer
+                  , _cnkScroll       = 0
                   }
 
     return (i, chunk)

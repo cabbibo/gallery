@@ -202,10 +202,10 @@ makeLenses ''Shapes
 -}
 
 data Painting = Painting
-  { _pntPose     :: !(Pose GLfloat)
-  , _pntGetShape :: !(IO (Shape Uniforms, String))
-  , _pntBuffer   :: !TextBuffer
-  , _pntScroll   :: !GLfloat
+  { _pntPose         :: !(Pose GLfloat)
+  , _pntGetShape     :: !(IO (Shape Uniforms, String))
+  , _pntTextRenderer :: !TextRenderer
+  , _pntScroll       :: !GLfloat
   }
 makeLenses ''Painting
 
@@ -222,10 +222,10 @@ makeLenses ''Painting
 -}
 
 data Sculpture = Sculpture
-  { _scpPose     :: !(Pose GLfloat)
-  , _scpGetShape :: !(IO (Shape Uniforms, String))
-  , _scpBuffer   :: !TextBuffer
-  , _scpScroll   :: !GLfloat
+  { _scpPose         :: !(Pose GLfloat)
+  , _scpGetShape     :: !(IO (Shape Uniforms, String))
+  , _scpTextRenderer :: !TextRenderer
+  , _scpScroll       :: !GLfloat
   }
 makeLenses ''Sculpture
 
@@ -238,10 +238,10 @@ makeLenses ''Sculpture
 -}
 
 data Chunk = Chunk
-  { _cnkPose     :: !(Pose GLfloat)
-  , _cnkGetShape :: !(IO (Shape Uniforms, String))
-  , _cnkBuffer   :: !TextBuffer
-  , _cnkScroll   :: !GLfloat
+  { _cnkPose         :: !(Pose GLfloat)
+  , _cnkGetShape     :: !(IO (Shape Uniforms, String))
+  , _cnkTextRenderer :: !TextRenderer
+  , _cnkScroll       :: !GLfloat
   }
 makeLenses ''Chunk
 
