@@ -111,7 +111,7 @@ main = do
     Main Game Loop!
 
   -}
-  void . flip runStateT world . whileWindow gpWindow $ do
+  void . flip runStateT world . whileVR vrPal $ \headM44 hands -> do
     
     persistState 1
 
@@ -133,13 +133,13 @@ main = do
     shiftDown <- (== KeyState'Pressed) <$> getKey gpWindow Key'LeftShift
     whenKeyPressed gpWindow Key'Z           $ liftIO $ putStrLn $ "oh" ++ show 5 ++ " yeah"
 
-    viewMat <- viewMatrixFromPose <$> use wldPlayer
+    player <- use wldPlayer
 
 
 
     -- Once we have set up all the neccesary information,
     -- Render away!
-    immutably $ renderWith vrPal viewMat
+    immutably $ renderWith vrPal player headM44
       (glClear (GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT))
       (render shapes)
 
